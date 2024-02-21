@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'com.wemojema'
+version '0.8.4'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'event-journal'
+            from components.java
+            pom {
+                name = 'event-journal'
+                description = 'event-journal java sdk'
+            }
+        }
+    }
+}
+
+dependencies {
+    def jacksonVersion = '2.12.5'
+    implementation 'org.slf4j:slf4j-api:2.0.3'
+    implementation 'io.cloudevents:cloudevents-json-jackson:2.3.0'
+    implementation 'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
+    implementation 'com.fasterxml.jackson.core:jackson-databind:' + jacksonVersion
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:' + jacksonVersion
+
+    testImplementation 'io.symphonia:lambda-logging:1.0.3'
+    testImplementation 'com.github.javafaker:javafaker:1.0.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+}
+
+test {
+    useJUnitPlatform()
+}
