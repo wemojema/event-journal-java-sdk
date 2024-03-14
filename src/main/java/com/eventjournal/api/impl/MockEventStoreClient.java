@@ -1,16 +1,14 @@
-package com.eventjournal.api.testing.fixtures;
+package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Envelope;
-import com.eventjournal.api.EventStoreClient;
 import com.eventjournal.api.Message;
-import com.eventjournal.api.impl.EventJournal;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MockEventStoreClient implements EventStoreClient {
+class MockEventStoreClient implements EventStoreClient {
 
     private final List<Envelope> publishedEnvelopes = new ArrayList<>();
 

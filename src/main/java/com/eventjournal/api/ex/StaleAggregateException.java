@@ -7,7 +7,7 @@ public class StaleAggregateException extends RuntimeException {
 
     public static void throwIf(boolean condition) {
         if (condition)
-            throw new StaleAggregateException("Command executed against a stale aggregate, refresh aggregate!");
+            throw new StaleAggregateException("Command executed against a stale aggregate, playback your aggregate and then try again!");
     }
 
 }

@@ -1,10 +1,9 @@
-package com.wemojema.api;
+package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Header;
 import com.eventjournal.api.StreamId;
-import com.eventjournal.api.testing.fixtures.MockEventStoreClient;
 import com.wemojema.BaseTest;
-import com.eventjournal.api.impl.EventJournal;
+import com.wemojema.api.TestAggregate;
 import com.wemojema.fixtures.TestEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-group 'com.wemojema'
+group 'com.eventjournal'
 version '0.8.4'
 
 repositories {
@@ -14,10 +14,10 @@ repositories {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'event-journal'
+            artifactId = 'client'
             from components.java
             pom {
-                name = 'event-journal'
+                name = 'client'
                 description = 'event-journal java sdk'
             }
         }

@@ -1,4 +1,4 @@
-package com.example;
+package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Aggregate;
 import com.eventjournal.api.Message;

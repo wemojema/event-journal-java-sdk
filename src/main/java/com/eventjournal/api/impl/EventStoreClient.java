@@ -1,9 +1,12 @@
-package com.eventjournal.api;
+package com.eventjournal.api.impl;
+
+import com.eventjournal.api.Envelope;
+import com.eventjournal.api.Message;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public interface EventStoreClient {
+interface EventStoreClient {
 
     void save(Envelope envelope);
 

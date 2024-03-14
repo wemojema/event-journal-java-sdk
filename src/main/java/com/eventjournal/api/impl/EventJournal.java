@@ -1,8 +1,12 @@
 package com.eventjournal.api.impl;
 
-import com.eventjournal.api.*;
+import com.eventjournal.api.Aggregate;
+import com.eventjournal.api.Envelope;
+import com.eventjournal.api.Message;
+import com.eventjournal.api.StreamId;
 import com.eventjournal.api.ex.IncompleteAggregateException;
 import com.eventjournal.api.ex.MissingEventHandlerException;
+import com.eventjournal.auth.APIKeys;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,12 +23,17 @@ import java.util.List;
 import java.util.Objects;
 
 public class EventJournal {
-    Logger log = LoggerFactory.getLogger(EventJournal.class);
+    private static final Logger log = LoggerFactory.getLogger(EventJournal.class);
 
-    EventStoreClient eventStoreClient;
+    private final EventStoreClient eventStoreClient;
 
-    public EventJournal(EventStoreClient eventStoreClient) {
+    EventJournal(EventStoreClient eventStoreClient) {
         this.eventStoreClient = eventStoreClient;
+    }
+
+    public EventJournal(String publicKey, String secretKey) {
+        APIKeys keys = new APIKeys(publicKey, secretKey);
+        this.eventStoreClient = new Client(keys);
     }
 
     public <T extends Aggregate> T playback(String streamId, Class<T> clazz) {
