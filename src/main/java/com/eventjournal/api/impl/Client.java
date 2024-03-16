@@ -2,7 +2,6 @@ package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Envelope;
 import com.eventjournal.auth.APIKeys;
-import com.eventjournal.auth.ConnectionVerification;
 import com.eventjournal.auth.HmacRequestSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +17,7 @@ import java.util.List;
 class Client implements EventStoreClient {
     Logger log = LoggerFactory.getLogger(Client.class);
     private static final String HOST = "https://api.event-journal.com";
+    private static final URL CONNECTION_VERIFICATION_URL;
     private static final URL SAVE_URL;
     private final APIKeys keys;
     private final HttpClient httpClient;
@@ -25,6 +25,7 @@ class Client implements EventStoreClient {
     static {
         try {
             SAVE_URL = new URL(String.format("%s%s", HOST, "/save"));
+            CONNECTION_VERIFICATION_URL = new URL(String.format("%s%s", HOST, "/verify-connection"));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e); // todo make this a better exception
         }
@@ -73,27 +74,32 @@ class Client implements EventStoreClient {
 
     @Override
     public EventStream stream(String streamId) {
-        return null;
+        return null; // todo implement this stream method
     }
 
-    public ConnectionVerification checkConnection() {
+    public void checkConnection() {
         try {
-            URL url = new URL("https://api.event-journal.com/health");
 
-            String requestBody = EventJournal.Toolbox.serialize(new ConnectionVerification(true, true));
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(url.toURI())
-                    .header("Authorization", HmacRequestSigner.signRequest(keys, url, requestBody))
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .uri(CONNECTION_VERIFICATION_URL.toURI())
+                    .header("Authorization", HmacRequestSigner.signRequest(keys, CONNECTION_VERIFICATION_URL, null))
+                    .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Connection to the Event Store is: " + response.statusCode());
-            return new ConnectionVerification(response.statusCode() != 403, response.statusCode() != 401);
+
+            if(response.statusCode() != 200) {
+                EventJournalErrorResponse errorResponse = EventJournal.Toolbox.deserialize(response.body(), EventJournalErrorResponse.class);
+                log.trace("Server Response: " + errorResponse);
+                throw new EventJournalConnectionFailedException("Failed to verify your connection to Event Journal. " +
+                        "Make sure the API Keys provided are correct. " +
+                        "The server responded with message: " +
+                        errorResponse.failureReason);
+            }
+            log.info("Connection to Event Journal verified!");
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("A problem occurred while checking the connection to the Event Store.");
-            return new ConnectionVerification(false, false);
+            log.error("Failed to verify connection to Event Store.", e);
+            throw new EventJournalConnectionFailedException("The connection attempt to Event Journal failed. Check your connection and proxy settings.", e);
         }
     }
 

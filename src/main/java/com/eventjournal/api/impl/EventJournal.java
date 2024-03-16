@@ -25,15 +25,16 @@ import java.util.Objects;
 public class EventJournal {
     private static final Logger log = LoggerFactory.getLogger(EventJournal.class);
 
-    private final EventStoreClient eventStoreClient;
+    private final EventStoreClient client;
 
-    EventJournal(EventStoreClient eventStoreClient) {
-        this.eventStoreClient = eventStoreClient;
+    EventJournal(EventStoreClient client) {
+        this.client = client;
     }
 
     public EventJournal(String publicKey, String secretKey) {
         APIKeys keys = new APIKeys(publicKey, secretKey);
-        this.eventStoreClient = new Client(keys);
+        this.client = new Client(keys);
+        ((Client)this.client).checkConnection();
     }
 
     public <T extends Aggregate> T playback(String streamId, Class<T> clazz) {
@@ -44,7 +45,7 @@ public class EventJournal {
         try {
             T aggregate = clazz.getDeclaredConstructor().newInstance();
 
-            List<Message.Event> events = eventStoreClient
+            List<Message.Event> events = client
                     .stream(streamId)
                     .events();
 
@@ -73,7 +74,7 @@ public class EventJournal {
     }
 
     public void record(Message message) {
-        eventStoreClient.save(Envelope.of(message));
+        client.save(Envelope.of(message));
     }
 
     public void record(Collection<Message> messages) {
