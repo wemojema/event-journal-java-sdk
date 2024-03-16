@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.*;
+import java.util.Objects;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, property = "@type")
 public interface Message {
     String streamId();
 

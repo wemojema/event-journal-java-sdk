@@ -12,10 +12,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Envelope implements CloudEvent {
@@ -39,6 +36,11 @@ public class Envelope implements CloudEvent {
     }
 
     public static Envelope of(Message message) {
+        Objects.requireNonNull(message, "Message cannot be null");
+        Objects.requireNonNull(message.header(), "Message header cannot be null");
+        Objects.requireNonNull(message.timestamp(), "Message timestamp cannot be null");
+        Objects.requireNonNull(message.messageCategory(), "Message category cannot be null");
+        Objects.requireNonNull(message.streamId(), "Message streamId cannot be null");
         return new Envelope(EventJournal.Toolbox.serialize(message), message.header());
     }
 
@@ -156,6 +158,10 @@ public class Envelope implements CloudEvent {
         return Arrays.stream(this.getClass().getDeclaredFields())
                 .filter(field -> field.getName().equalsIgnoreCase(attributeName))
                 .findAny();
+    }
+
+    public Header getHeader() {
+        return header;
     }
 
     @Override
