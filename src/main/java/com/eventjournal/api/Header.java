@@ -58,7 +58,7 @@ public class Header {
                 messageType.getSimpleName(),
                 Message.MessageCategory.of(messageType),
                 Instant.now(),
-                targetAggregate.version(),
+                targetAggregate.version() + 1,
                 cause.header().messageId,
                 UUID.randomUUID().toString(),
                 cause.header().correlationId
@@ -83,7 +83,7 @@ public class Header {
                 messageType.getSimpleName(),
                 Message.MessageCategory.COMMAND, // side effects should always be commands
                 Instant.now(),
-                targetAggregate.version(),
+                targetAggregate.version() + 1,
                 cause.header().messageId,
                 UUID.randomUUID().toString(),
                 cause.header().correlationId
