@@ -23,7 +23,7 @@ public class Serializing extends BaseTest {
 
         String packed = EventJournal.Toolbox.serialize(envelope);
         System.out.println(packed);
-        Assertions.assertTrue(packed.contains("@type\\\":\\\"com.eventjournal.api.impl.ItemAdded\\\""));
+        Assertions.assertTrue(packed.contains("@type\\\":\\\"ItemAdded\\\""));
         Assertions.assertDoesNotThrow(() -> EventJournal.Toolbox.deserialize(packed, Envelope.class));
         Assertions.assertDoesNotThrow(() -> EventJournal.Toolbox.deserialize(EventJournal.Toolbox.deserialize(packed, Envelope.class).getData().getSerializedMessage(), Message.class));
     }
