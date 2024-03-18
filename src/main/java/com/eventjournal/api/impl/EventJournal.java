@@ -92,6 +92,7 @@ public class EventJournal {
         static {
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
             mapper.registerModule(new JavaTimeModule());
+            MessageTypeIdResolver.scanForTypes(mapper);
         }
 
         public static String serialize(Object obj) {

@@ -8,7 +8,7 @@ public class ItemAdded extends Message.Event {
     String itemId;
 
     public ItemAdded(Cart cart, AddItem command) {
-        super(Header.resultingFrom(command.header(), ItemAdded.class));
+        super(Header.resultingFrom(command, cart, ItemAdded.class));
         this.itemId = command.itemId;
     }
 

@@ -1,12 +1,15 @@
 package com.eventjournal.api;
 
+import com.eventjournal.api.impl.MessageTypeIdResolver;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, property = "@type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, property = "@type")
+@JsonTypeIdResolver(MessageTypeIdResolver.class)
 public interface Message {
     String streamId();
 

@@ -47,21 +47,21 @@ public class Header {
      * The resulting message will be in the same correlation chain as the original message
      * and populate the same Stream as the original message.
      *
-     * @param header      the original message header
+     * @param cause      the original message that caused this message
+     * @param targetAggregate the aggregate that this message is related to
      * @param messageType the type of the new message
      * @return a new MessageHeader
      */
-    public static Header resultingFrom(Header header,
-                                       Class<? extends Message> messageType) {
+    public static Header resultingFrom(Message cause, Aggregate targetAggregate, Class<? extends Message.Event> messageType) {
         return new Header(
-                header.streamId,
+                targetAggregate.streamId(),
                 messageType.getSimpleName(),
                 Message.MessageCategory.of(messageType),
                 Instant.now(),
-                header.sequence + 1,
-                header.messageId,
+                targetAggregate.version(),
+                cause.header().messageId,
                 UUID.randomUUID().toString(),
-                header.correlationId
+                cause.header().correlationId
         );
     }
 
@@ -77,7 +77,7 @@ public class Header {
      * @param messageType     the type of message that this side effect is
      * @return a new MessageHeader
      */
-    public static Header sideEffectOf(Message cause, Aggregate targetAggregate, Class<? extends Message> messageType) {
+    public static Header sideEffectOf(Message cause, Aggregate targetAggregate, Class<? extends Message.Command> messageType) {
         return new Header(
                 targetAggregate.streamId(),
                 messageType.getSimpleName(),

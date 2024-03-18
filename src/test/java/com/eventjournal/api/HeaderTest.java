@@ -29,7 +29,7 @@ class HeaderTest extends BaseTest {
         TestAggregate testAggregate = new TestAggregate();
         TestCommand testCommand = new TestCommand("TestAggregate|1", Instant.now(), 0, Header.headOfChain(TestAggregate.class, "1", TestCommand.class));
         // act
-        uut = Header.resultingFrom(testCommand.header(), TestEvent.class);
+        uut = Header.resultingFrom(testCommand, testAggregate, TestEvent.class);
         // assert
         Assertions.assertEquals(Message.MessageCategory.EVENT, uut.category);
     }

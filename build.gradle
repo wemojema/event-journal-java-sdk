@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.eventjournal'
-version '0.9.2'
+version '0.9.4'
 
 repositories {
     mavenLocal()
@@ -27,6 +27,7 @@ publishing {
 dependencies {
     def jacksonVersion = '2.12.5'
     implementation 'org.slf4j:slf4j-api:2.0.3'
+    implementation 'org.reflections:reflections:0.10.2'
     implementation 'io.cloudevents:cloudevents-json-jackson:2.3.0'
     implementation 'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
     implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
