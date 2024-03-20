@@ -1,8 +1,8 @@
 package com.wemojema.fixtures;
 
 import com.eventjournal.api.Header;
-import com.wemojema.api.TestAggregate;
 import com.eventjournal.api.Message;
+import com.wemojema.api.TestAggregate;
 
 import java.time.Instant;
 
@@ -38,7 +38,7 @@ public class TestCommand extends Message.Command {
 
     @Override
     public Header header() {
-        return header == null ? Header.headOfChain(TestAggregate.class, "1", TestCommand.class) : header;
+        return header == null ? Header.headOfChain(TestAggregate.class, "1", TestCommand.class, 0) : header;
     }
 
     public void setHeader(Header header) {

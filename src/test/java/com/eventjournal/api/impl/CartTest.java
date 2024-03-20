@@ -15,7 +15,7 @@ public class CartTest extends BaseTest {
     @Test
     void should_result_with_a_Cart_with_items() {
         Cart cart = new Cart(faker.idNumber().valid());
-        Message.Event result = cart.handle(new AddItem(Header.headOfChain(Cart.class, cart.id, ItemAdded.class), faker.idNumber().valid()));
+        Message.Event result = cart.handle(new AddItem(Header.headOfChain(Cart.class, cart.id, ItemAdded.class, 0), faker.idNumber().valid()));
         eventJournal.record(result);
 
         Cart playbackCart = eventJournal.playback(Cart.class, cart.id);

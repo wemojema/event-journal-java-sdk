@@ -40,7 +40,7 @@ public class SomethingHappened extends Message.Event {
 
     public static void main(String[] args) {
         SomethingHappened sh = new SomethingHappened(
-                Header.headOfChain(Aggregate.class, "1", SomethingHappened.class),
+                Header.headOfChain(Aggregate.class, "1", SomethingHappened.class, 0),
                 "a","b", "c", "d");
         System.out.println(EventJournal.Toolbox.serialize(Envelope.of(sh)));
     }

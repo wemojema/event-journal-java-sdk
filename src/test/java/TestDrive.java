@@ -13,7 +13,7 @@ public class TestDrive {
         // setting up a new EventJournal will automatically check the connection with the host.
         new EventJournal("test-key","test-secret");
 
-        TestEvent event = new TestEvent(Header.headOfChain(TestAggregate.class, "1", TestEvent.class));
+        TestEvent event = new TestEvent(Header.headOfChain(TestAggregate.class, "1", TestEvent.class, 0));
         String json = EventJournal.Toolbox.serialize(event);
         System.out.println(json);
         Message message = EventJournal.Toolbox.deserialize(json, Message.class);

@@ -15,19 +15,19 @@ class HeaderTest extends BaseTest {
 
     @BeforeEach
     void setUp() {
-        uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class);
+        uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class, 0);
     }
 
     @Test
     void should_be_of_message_type_COMMAND() {
-        uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class);
+        uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class, 0);
         Assertions.assertEquals(Message.MessageCategory.COMMAND, uut.category);
     }
 
     @Test
     void should_be_of_message_type_EVENT() {
         TestAggregate testAggregate = new TestAggregate();
-        TestCommand testCommand = new TestCommand("TestAggregate|1", Instant.now(), 0, Header.headOfChain(TestAggregate.class, "1", TestCommand.class));
+        TestCommand testCommand = new TestCommand("TestAggregate|1", Instant.now(), 0, Header.headOfChain(TestAggregate.class, "1", TestCommand.class, 0));
         // act
         uut = Header.resultingFrom(testCommand, testAggregate, TestEvent.class);
         // assert

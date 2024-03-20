@@ -23,7 +23,7 @@ public class Recording extends BaseTest {
 
     @Test
     public void should_record_into_stream_provided() {
-        TestEvent event = new TestEvent(Header.headOfChain(TestAggregate.class, "1", TestEvent.class));
+        TestEvent event = new TestEvent(Header.headOfChain(TestAggregate.class, "1", TestEvent.class, 0));
         eventJournal.record(event);
         Assertions.assertEquals(1, fakeEventStoreClient.stream(StreamId.of(TestAggregate.class, "1")).events().size());
     }

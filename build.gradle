@@ -4,17 +4,23 @@ plugins {
 }
 
 group 'com.eventjournal'
-version '0.9.7'
+version '0.10.0'
 
 repositories {
     mavenLocal()
     mavenCentral()
 }
 
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier.set('sources')
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'client'
+            artifact tasks.sourcesJar
             from components.java
             pom {
                 name = 'client'

@@ -47,9 +47,9 @@ public class Header {
      * The resulting message will be in the same correlation chain as the original message
      * and populate the same Stream as the original message.
      *
-     * @param cause      the original message that caused this message
+     * @param cause           the original message that caused this message
      * @param targetAggregate the aggregate that this message is related to
-     * @param messageType the type of the new message
+     * @param messageType     the type of the new message
      * @return a new MessageHeader
      */
     public static Header resultingFrom(Message cause, Aggregate targetAggregate, Class<? extends Message.Event> messageType) {
@@ -92,15 +92,16 @@ public class Header {
 
     /**
      * Use this static convenience constructor when you need to create
-     * a message header for the first message in a chain
+     * a message header for the first message in a correlation chain
      *
-     * @param aggregateType the Class of the Aggregate
-     * @param aggregateId   the ID of the Aggregate
-     * @param messageType   the Class of the Message
+     * @param aggregateType    the Class of the Aggregate
+     * @param aggregateId      the ID of the Aggregate
+     * @param messageType      the Class of the Message
+     * @param aggregateVersion the aggregateVersion of the aggregate for which this message is raised
      * @return a new MessageHeader
      */
-    public static Header headOfChain(Class<? extends Aggregate> aggregateType, String aggregateId, Class<? extends Message> messageType) {
-        return new Header(StreamId.of(aggregateType, aggregateId), messageType, 0);
+    public static Header headOfChain(Class<? extends Aggregate> aggregateType, String aggregateId, Class<? extends Message> messageType, int aggregateVersion) {
+        return new Header(StreamId.of(aggregateType, aggregateId), messageType, aggregateVersion + 1);
     }
 
     /**
@@ -128,12 +129,13 @@ public class Header {
 
     /**
      * Use this constructor when this is the first event or command in a chain.
-     *
+     * Deprecated: use the static convenience constructor headOfChain() instead
      * @param streamId    the Stream ID this Message belongs to
      * @param messageType the MessageType (some implementation of a Command or Event class.simpleName())
      * @param sequence    the aggregate version for which this message was raised
      * @param causationId the event or command that caused this event or command
      */
+    @Deprecated
     public Header(String streamId, Class<? extends Message> messageType, int sequence, String causationId) {
         this.streamId = Objects.requireNonNull(streamId, "Stream ID is required");
         this.messageType = Objects.requireNonNull(messageType, "Message Type is required").getSimpleName();
