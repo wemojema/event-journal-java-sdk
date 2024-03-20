@@ -7,5 +7,5 @@ public interface Aggregate {
         return StreamId.of(getClass(), getId());
     }
 
-    Integer version();
+    default Integer version() { return 0; };
 }

@@ -93,6 +93,8 @@ public class Header {
     /**
      * Use this static convenience constructor when you need to create
      * a message header for the first message in a correlation chain
+     * on an aggregate that has not yet been established. This is
+     * typically used when creating a new aggregate.
      *
      * @param aggregateType    the Class of the Aggregate
      * @param aggregateId      the ID of the Aggregate
@@ -102,6 +104,19 @@ public class Header {
      */
     public static Header headOfChain(Class<? extends Aggregate> aggregateType, String aggregateId, Class<? extends Message> messageType, int aggregateVersion) {
         return new Header(StreamId.of(aggregateType, aggregateId), messageType, aggregateVersion + 1);
+    }
+
+    /**
+     * Use this static convenience constructor when you need to create
+     * a message header for the first message in a correlation chain
+     * on an already established aggregate
+     *
+     * @param aggregate   the Aggregate for which this message is raised
+     * @param messageType the Class of the Message
+     * @return a new MessageHeader
+     */
+    public static Header headOfChain(Aggregate aggregate, Class<? extends Message> messageType) {
+        return new Header(StreamId.of(aggregate.getClass(), aggregate.getId()), messageType, aggregate.version() + 1);
     }
 
     /**
@@ -130,6 +145,7 @@ public class Header {
     /**
      * Use this constructor when this is the first event or command in a chain.
      * Deprecated: use the static convenience constructor headOfChain() instead
+     *
      * @param streamId    the Stream ID this Message belongs to
      * @param messageType the MessageType (some implementation of a Command or Event class.simpleName())
      * @param sequence    the aggregate version for which this message was raised
