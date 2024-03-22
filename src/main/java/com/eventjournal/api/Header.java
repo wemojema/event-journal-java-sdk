@@ -1,9 +1,23 @@
 package com.eventjournal.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * The Header contains metadata for a Message.
+ * Use the Header to store your own additional metadata
+ * for a message if need by with the put(key, value) method.
+ * Later when you need to retrieve the value, use the get(key) method.
+ */
 public class Header {
+    @JsonIgnore
+    private static final Logger log = LoggerFactory.getLogger(Header.class);
     String streamId;
     String messageType;
     Message.MessageCategory category;
@@ -184,6 +198,24 @@ public class Header {
         this.customHeader = new HashMap<>();
     }
 
+    public Set<String> reservedKeys() {
+        return Arrays.stream(this.getClass().getDeclaredFields())
+                .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
+                .map(Field::getName)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Use this put method to add custom metadata to the MessageHeader
+     * throws an IllegalArgumentException if a key is reserved.
+     * Use reservedKeys() method to discover reserved keys.
+     *
+     * @param key   the key for the metadata
+     * @param value the value for the metadata
+     *              IMPORTANT: value must be serializable & deserializable using
+     *              the EventJournal.Toolbox.serialize() & deserialize() methods
+     * @return the value that was put
+     */
     public Object put(String key, Object value) {
         if (keyIsReserved(key))
             throw new IllegalArgumentException(String.format("the Key: %s is a reserved Keyword of the MessageHeader", key));
@@ -193,17 +225,17 @@ public class Header {
     }
 
     private boolean keyIsReserved(String key) {
-        return Arrays.stream(this.getClass().getDeclaredFields()).anyMatch(field -> field.getName().equals(key));
+        return reservedKeys().contains(key);
     }
 
     public Optional<Object> get(String key) {
         try {
             if (keyIsReserved(key)) {
-                return Optional.ofNullable((String) Header.class.getDeclaredField(key).get(this));
+                return Optional.ofNullable(Header.class.getDeclaredField(key).get(this));
             }
             return Optional.ofNullable(customHeader.get(key));
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            // todo log a warning here
+            log.warn("Caught an exception while trying to get a value from the MessageHeader: ", e);
             return Optional.empty();
         }
     }

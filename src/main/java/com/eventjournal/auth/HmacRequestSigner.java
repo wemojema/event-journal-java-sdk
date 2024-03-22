@@ -9,28 +9,27 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-public final class HmacRequestSigner {
+public class HmacRequestSigner {
 
     // Included in the signature to inform Veracode of the signature version.
-    private static final String REQUEST_VERSION_STRING = "ej_request_version_1";
+    protected static final String REQUEST_VERSION_STRING = "ej_request_version_1";
 
     // Expected format for the unencrypted data string.
-    private static final String DATA_FORMAT = "pk=%s&host=%s&url=%s&body=%s";
+    protected static final String DATA_FORMAT = "pk=%s&host=%s&url=%s&body=%s";
 
     // Expected format for the signature header.
-    private static final String HEADER_FORMAT = "ej-request-signature: id=%s,ts=%s,nonce=%s,sig=%s";
 
     // HMAC encryption algorithm.
-    private static final String HMAC_SHA_256 = "HmacSHA256";
+    protected static final String HMAC_SHA_256 = "HmacSHA256";
 
     // Charset to use when encrypting a string.
-    private static final String UTF_8 = "UTF-8";
+    protected static final String UTF_8 = "UTF-8";
 
     // A cryptographically secure random number generator.
-    private static final SecureRandom secureRandom = new SecureRandom();
+    protected static final SecureRandom secureRandom = new SecureRandom();
 
     // Private constructor.
-    private HmacRequestSigner() {
+    protected HmacRequestSigner() {
         /*
          * This is a utility class that should only be accessed through its
          * static methods.
@@ -55,13 +54,13 @@ public final class HmacRequestSigner {
         final String signature;
         try {
             signature = Base64.getEncoder().encodeToString(sign(apiKeys.privateKey, data, timestamp, nonce));
+            return new APIKeySignature(apiKeys.publicKey, timestamp, nonce, signature).toHeader();
         } catch (InvalidKeyException | UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        return String.format(HEADER_FORMAT, apiKeys.publicKey, timestamp, nonce, signature);
     }
 
-    private static byte[] sign(final String secretKey, final String data, final String timestamp, final String nonce)
+    protected static byte[] sign(final String secretKey, final String data, final String timestamp, final String nonce)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, UnsupportedEncodingException {
         final byte[] keyBytes = secretKey.getBytes();
         final byte[] nonceBytes = nonce.getBytes();

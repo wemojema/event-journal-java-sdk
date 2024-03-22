@@ -19,7 +19,7 @@ public class EventJournalEventData implements CloudEventData {
 
     @Override
     public String toString() {
-        throw new UnsupportedOperationException("Not implemented");
+        return getSerializedMessage();
     }
 
     public String getSerializedMessage() {

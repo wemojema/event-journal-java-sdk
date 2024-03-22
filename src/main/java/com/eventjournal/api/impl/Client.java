@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Base64;
 import java.util.List;
 
 class Client implements EventStoreClient {
@@ -79,10 +80,11 @@ class Client implements EventStoreClient {
 
     public void checkConnection() {
         try {
+            String header = HmacRequestSigner.signRequest(keys, CONNECTION_VERIFICATION_URL, null);
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(CONNECTION_VERIFICATION_URL.toURI())
-                    .header("Authorization", HmacRequestSigner.signRequest(keys, CONNECTION_VERIFICATION_URL, null))
+                    .header("Authorization", Base64.getEncoder().encodeToString(header.getBytes()))
                     .GET()
                     .build();
 
@@ -109,7 +111,7 @@ class Client implements EventStoreClient {
         try {
             return httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Failed to send request to Event Journal.", e);
             throw new RuntimeException(e);
         }
     }

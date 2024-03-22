@@ -26,6 +26,7 @@ public class EventJournal {
     private static final Logger log = LoggerFactory.getLogger(EventJournal.class);
 
     private final EventStoreClient client;
+    private Message.Producer producer = Message.Producer.ANONYMOUS;
 
     EventJournal(EventStoreClient client) {
         this.client = client;
@@ -35,6 +36,10 @@ public class EventJournal {
         APIKeys keys = new APIKeys(publicKey, secretKey);
         this.client = new Client(keys);
         ((Client)this.client).checkConnection();
+    }
+    public EventJournal withProducer(Message.Producer producer) {
+        this.producer = producer;
+        return this;
     }
 
     public <T extends Aggregate> T playback(String streamId, Class<T> clazz) {

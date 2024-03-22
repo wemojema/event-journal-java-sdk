@@ -10,24 +10,24 @@ import java.util.stream.Collectors;
 
 class MockEventStoreClient implements EventStoreClient {
 
-    private final List<Envelope> publishedEnvelopes = new ArrayList<>();
+    private final List<Envelope> saves = new ArrayList<>();
 
 
     @Override
     public void save(Envelope envelope) {
-        this.publishedEnvelopes.add(envelope);
+        this.saves.add(envelope);
     }
 
     @Override
     public void save(List<Envelope> envelopeList) {
-        this.publishedEnvelopes.addAll(envelopeList);
+        this.saves.addAll(envelopeList);
     }
 
     @Override
     public EventStream stream(String streamId) {
 
         return new EventStream(
-                publishedEnvelopes
+                saves
                         .stream()
                         .filter(e -> e.streamId().equals(streamId))
                         .sorted(Comparator.comparing(Envelope::getSequence))

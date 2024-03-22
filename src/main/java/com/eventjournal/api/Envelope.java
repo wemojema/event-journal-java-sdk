@@ -13,12 +13,13 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Envelope implements CloudEvent {
     @JsonIgnore
     private static final Logger log = LoggerFactory.getLogger(Envelope.class);
-    private SpecVersion specVersion = SpecVersion.V1;
+    private final SpecVersion specVersion = SpecVersion.V1;
     private String subject;
     private String type;
     private String id;
@@ -58,10 +59,10 @@ public class Envelope implements CloudEvent {
         this.subject = header.streamId.split("/")[0];
         this.time = header.timestamp.atOffset(OffsetDateTime.now().getOffset());
         this.dataContentType = "application/json";
-        this.extensionNames = new HashSet<>();
+        this.extensionNames = header.reservedKeys();
         this.attributeNames =
                 Stream.concat(CloudEvent.super.getAttributeNames().stream(),
-                        Stream.of("streamId", "messageId", "version", "category", "timestamp"))
+                                Stream.of("streamId", "messageId", "version", "category", "timestamp"))
                         .collect(HashSet::new, Set::add, Set::addAll);
     }
 
@@ -172,13 +173,14 @@ public class Envelope implements CloudEvent {
     @Override
     @JsonIgnore
     public Object getExtension(String extensionName) {
-        // todo figure out what the extensions are.
-        return null;
+        return header.get(extensionName)
+                .orElseThrow(() -> new IllegalArgumentException("Extension " + extensionName + " is missing, use the getExtensionNames() method to discover available extensions!"));
     }
 
     @Override
     @JsonIgnore
     public Set<String> getExtensionNames() {
-        return this.extensionNames;
+        return Stream.concat(this.extensionNames.stream(), header.getCustomHeader().keySet().stream())
+                .collect(Collectors.toSet());
     }
 }
