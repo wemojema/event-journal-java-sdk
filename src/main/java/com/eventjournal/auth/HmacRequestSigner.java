@@ -8,6 +8,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Optional;
 
 public class HmacRequestSigner {
 
@@ -48,7 +49,7 @@ public class HmacRequestSigner {
      */
     public static String signRequest(final APIKeys apiKeys, final URL url, final String requestBody) {
         final String urlPath = (url.getQuery() == null) ? url.getPath() : url.getPath().concat("?").concat(url.getQuery());
-        final String data = String.format(DATA_FORMAT, apiKeys.publicKey, url.getHost(), urlPath, requestBody);
+        final String data = formatSigningData(apiKeys.publicKey, url.getHost(), urlPath, requestBody);
         final String timestamp = String.valueOf(System.currentTimeMillis());
         final String nonce = Base64.getEncoder().encodeToString(generateRandomBytes(16));
         final String signature;
@@ -58,6 +59,10 @@ public class HmacRequestSigner {
         } catch (InvalidKeyException | UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected static String formatSigningData(final String publicKey, final String host, final String url, final String body) {
+        return String.format(DATA_FORMAT, publicKey, host, url, Optional.ofNullable(body).orElse(""));
     }
 
     protected static byte[] sign(final String secretKey, final String data, final String timestamp, final String nonce)
