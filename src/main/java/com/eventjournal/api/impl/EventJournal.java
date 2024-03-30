@@ -82,7 +82,8 @@ public class EventJournal {
     }
 
     public void record(Collection<Message> messages) {
-        messages.forEach(this::record);
+        List<Envelope> envelopes = messages.stream().map(Envelope::of).toList();
+        client.save(envelopes);
     }
 
     public <T extends Aggregate> T playback(Class<T> aggregateType, String aggregateId) {
