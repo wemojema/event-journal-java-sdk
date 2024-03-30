@@ -1,5 +1,8 @@
 package com.eventjournal.auth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
@@ -11,7 +14,7 @@ import java.util.Base64;
 import java.util.Optional;
 
 public class HmacRequestSigner {
-
+    private static final Logger log = LoggerFactory.getLogger(HmacRequestSigner.class);
     // Included in the signature to inform Veracode of the signature version.
     protected static final String REQUEST_VERSION_STRING = "ej_request_version_1";
 
@@ -54,7 +57,9 @@ public class HmacRequestSigner {
         final String nonce = Base64.getEncoder().encodeToString(generateRandomBytes(16));
         final String signature;
         try {
+            log.trace("Signing Data for {}: {}", urlPath, data);
             signature = Base64.getEncoder().encodeToString(sign(apiKeys.privateKey, data, timestamp, nonce));
+            log.trace("Signature for {}: {}", urlPath, signature);
             return new APIKeySignature(apiKeys.publicKey, timestamp, nonce, signature).toHeader();
         } catch (InvalidKeyException | UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
