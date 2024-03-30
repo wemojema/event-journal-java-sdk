@@ -12,8 +12,10 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.Flow;
 
 class Client implements EventStoreClient {
     Logger log = LoggerFactory.getLogger(Client.class);
@@ -42,7 +44,9 @@ class Client implements EventStoreClient {
         String value;
 
         static Header Signature(APIKeys keys, URL url, String body) {
-            return new Header("Signature", HmacRequestSigner.signRequest(keys, url, body));
+            return new Header("Authorization",
+                    Base64.getEncoder().encodeToString(HmacRequestSigner.signRequest(keys, url, body).getBytes())
+            );
         }
 
         private Header(String key, String value) {
@@ -56,9 +60,37 @@ class Client implements EventStoreClient {
         save(List.of(envelope));
     }
 
+    private static class EJBodyPublisher implements HttpRequest.BodyPublisher {
+        @Override
+        public long contentLength() {
+            return 0;
+        }
+
+        @Override
+        public void subscribe(Flow.Subscriber<? super ByteBuffer> subscriber) {
+
+        }
+    }
+
+    private static class VerificationRequest {
+
+    }
+
+    private static class EventJournalSaveRequest {
+        List<Envelope> messages;
+
+        public EventJournalSaveRequest(List<Envelope> messages) {
+            this.messages = messages;
+        }
+
+        public List<Envelope> getMessages() {
+            return messages;
+        }
+    }
+
     @Override
     public void save(List<Envelope> envelopeList) {
-        String body = EventJournal.Toolbox.serialize(envelopeList);
+        String body = EventJournal.Toolbox.serialize(new EventJournalSaveRequest(envelopeList));
         HttpRequest.BodyPublisher requestBody = HttpRequest.BodyPublishers.ofString(body);
         Header authHeader = Header.Signature(keys, SAVE_URL, body);
         try {
@@ -67,10 +99,18 @@ class Client implements EventStoreClient {
                     .uri(SAVE_URL.toURI())
                     .POST(requestBody)
                     .build();
-            sendRequest(httpRequest);
+            HttpResponse<String> response = sendRequest(httpRequest);
+            if (!isSuccessful(response)) {
+                log.error("Server Response: {}", response.body());
+                throw new RuntimeException("Failed to save the event to Event Journal. The server responded with message: " + response.body());
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean isSuccessful(HttpResponse<String> response) {
+        return response.statusCode() >= 200 && response.statusCode() < 300;
     }
 
     @Override
@@ -80,17 +120,17 @@ class Client implements EventStoreClient {
 
     public void checkConnection() {
         try {
-            String header = HmacRequestSigner.signRequest(keys, CONNECTION_VERIFICATION_URL, null);
+            Header header = Header.Signature(keys, CONNECTION_VERIFICATION_URL, "{}");
 
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(CONNECTION_VERIFICATION_URL.toURI())
-                    .header("Authorization", Base64.getEncoder().encodeToString(header.getBytes()))
-                    .GET()
+                    .header(header.key, header.value)
+                    .POST(HttpRequest.BodyPublishers.ofString("{}"))
                     .build();
 
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-            if(response.statusCode() != 200) {
+            if (!isSuccessful(response)) {
                 EventJournalErrorResponse errorResponse = EventJournal.Toolbox.deserialize(response.body(), EventJournalErrorResponse.class);
                 log.trace("Server Response: " + errorResponse);
                 throw new EventJournalConnectionFailedException("Failed to verify your connection to Event Journal. " +
@@ -106,8 +146,7 @@ class Client implements EventStoreClient {
     }
 
 
-
-    private HttpResponse<String>  sendRequest(HttpRequest httpRequest) {
+    private HttpResponse<String> sendRequest(HttpRequest httpRequest) {
         try {
             return httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {

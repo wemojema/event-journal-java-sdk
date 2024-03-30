@@ -11,6 +11,15 @@ class ToolboxTest extends BaseTest {
 
     EventJournal.Toolbox uut;
 
+    @Test
+    void should_deserialize_a_base64_encoded_json() {
+        Pojo pojo = new Pojo(faker.starTrek().character(), Arrays.asList(faker.starTrek().location(), faker.starTrek().location()),
+                Map.of(faker.starTrek().location(), faker.random().nextInt(1, 10), faker.starTrek().character(), faker.random().nextInt(1, 10)));
+        String testString = EventJournal.Toolbox.serialize(pojo);
+        System.out.println(testString);
+        Pojo result = EventJournal.Toolbox.deserialize(Base64.getEncoder().encodeToString(testString.getBytes()), Pojo.class);
+        Assertions.assertEquals(pojo, result);
+    }
 
     @Test
     void should_deserialize_a_list_of_objects() {

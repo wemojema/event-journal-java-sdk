@@ -16,11 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class EventJournal {
     private static final Logger log = LoggerFactory.getLogger(EventJournal.class);
@@ -35,8 +33,9 @@ public class EventJournal {
     public EventJournal(String publicKey, String secretKey) {
         APIKeys keys = new APIKeys(publicKey, secretKey);
         this.client = new Client(keys);
-        ((Client)this.client).checkConnection();
+        ((Client) this.client).checkConnection();
     }
+
     public EventJournal withProducer(Message.Producer producer) {
         this.producer = producer;
         return this;
@@ -110,7 +109,7 @@ public class EventJournal {
 
         public static <T> T deserialize(String string, Class<T> clazz) {
             try {
-                return mapper.readValue(Objects.requireNonNull(string, "jsonString must not be null"),
+                return mapper.readValue(Objects.requireNonNull(maybeDecode(string), "jsonString must not be null"),
                         Objects.requireNonNull(clazz, "Provided Class must not be null"));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("A JsonProcessing Exception Occurred while trying to deserialize!", e);
@@ -119,15 +118,24 @@ public class EventJournal {
             }
         }
 
-        public static <T> T deserialize(String json, Class<?> objectType, Class<? extends Collection> listType) {
+        public static <T> T deserialize(String string, Class<?> objectType, Class<? extends Collection> listType) {
             try {
-                return mapper.readValue(Objects.requireNonNull(json, "json must not be null"),
+                return mapper.readValue(Objects.requireNonNull(maybeDecode(string), "json must not be null"),
                         mapper.getTypeFactory().constructCollectionType(Objects.requireNonNull(listType, "ListType must not be null!"),
                                 Objects.requireNonNull(objectType, "Object type must not be null")));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             } catch (NullPointerException e) {
                 throw new IllegalArgumentException(e);
+            }
+        }
+
+        private static String maybeDecode(String string) {
+            if (string.startsWith("{") || string.startsWith("[")) {
+                return string;
+            } else {
+                log.debug("The provided String appears to be encoded. Assuming it is Base64 and decoding it.");
+                return new String(Base64.getDecoder().decode(string.getBytes(StandardCharsets.UTF_8)));
             }
         }
 
