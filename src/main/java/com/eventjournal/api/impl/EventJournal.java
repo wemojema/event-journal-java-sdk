@@ -46,26 +46,29 @@ public class EventJournal {
     }
 
     public <T extends Aggregate> T playback(String streamId, Class<T> clazz, Instant timestamp) {
+        T aggregate = instantiate(clazz);
+
+        List<Message.Event> events = client
+                .stream(streamId)
+                .events();
+
+        if (log.isTraceEnabled())
+            log.trace("Streamed Events: \n" + Toolbox.serialize(events));
+
+        events.stream()
+                .filter(e -> e.timestamp().isBefore(timestamp) || e.timestamp().equals(timestamp))
+                .sorted(Comparator.comparing(Message.Event::version))
+                .forEach(e -> applyEvent(aggregate, e));
+
+        return aggregate;
+    }
+
+    private <T extends Aggregate> T instantiate(Class<T> clazz) {
         try {
-            T aggregate = clazz.getDeclaredConstructor().newInstance();
-
-            List<Message.Event> events = client
-                    .stream(streamId)
-                    .events();
-
-            if (log.isTraceEnabled())
-                log.trace("Streamed Events: \n" + Toolbox.serialize(events));
-
-            events.stream()
-                    .filter(e -> e.timestamp().isBefore(timestamp) || e.timestamp().equals(timestamp))
-                    .sorted(Comparator.comparing(Message.Event::version))
-                    .forEach(e -> applyEvent(aggregate, e));
-
-            return aggregate;
-
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
-            throw new IncompleteAggregateException("The Aggregate class provided is incomplete", e);
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            throw new IncompleteAggregateException(String.format("Unable to instantiate %s", clazz.getSimpleName()), e);
         }
     }
 
