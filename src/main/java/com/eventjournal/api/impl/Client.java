@@ -1,6 +1,7 @@
 package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Envelope;
+import com.eventjournal.api.Message;
 import com.eventjournal.auth.APIKeys;
 import com.eventjournal.auth.HmacRequestSigner;
 import org.slf4j.Logger;
@@ -19,15 +20,19 @@ import java.util.concurrent.Flow;
 
 class Client implements EventStoreClient {
     Logger log = LoggerFactory.getLogger(Client.class);
+    public static final String PLAYBACK_ROUTE = "/playback";
+    public static final String SAVE_ROUTE = "/save";
     private static final String HOST = "https://api.event-journal.com";
     private static final URL CONNECTION_VERIFICATION_URL;
     private static final URL SAVE_URL;
+    private static final URL PLAYBACK_URL;
     private final APIKeys keys;
     private final HttpClient httpClient;
 
     static {
         try {
-            SAVE_URL = new URL(String.format("%s%s", HOST, "/save"));
+            PLAYBACK_URL = new URL(String.format("%s%s", HOST, PLAYBACK_ROUTE));
+            SAVE_URL = new URL(String.format("%s%s", HOST, SAVE_ROUTE));
             CONNECTION_VERIFICATION_URL = new URL(String.format("%s%s", HOST, "/verify-connection"));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e); // todo make this a better exception
@@ -88,6 +93,20 @@ class Client implements EventStoreClient {
         }
     }
 
+    private static class EventJournalPlaybackRequest {
+        String streamId;
+        int since;
+
+        public EventJournalPlaybackRequest(String streamId, int since) {
+            this.streamId = streamId;
+            this.since = since;
+        }
+
+        public String getStreamId() {
+            return streamId;
+        }
+    }
+
     @Override
     public void save(List<Envelope> envelopeList) {
         String body = EventJournal.Toolbox.serialize(new EventJournalSaveRequest(envelopeList));
@@ -115,7 +134,30 @@ class Client implements EventStoreClient {
 
     @Override
     public EventStream stream(String streamId) {
-        return null; // todo implement this stream method
+        try {
+            String body = EventJournal.Toolbox.serialize(new EventJournalPlaybackRequest(streamId, 0));
+            HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
+            System.out.println("Body: " + body);
+            Header authHeader = Header.Signature(keys, PLAYBACK_URL, body);
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .header(authHeader.key, authHeader.value)
+                    .uri(PLAYBACK_URL.toURI())
+                    .POST(bodyPublisher)
+                    .build();
+            HttpResponse<String> response = sendRequest(httpRequest);
+            if(!isSuccessful(response)) {
+                log.error("Server Response: {}", response.body());
+                throw new RuntimeException("Failed to retrieve the event stream from Event Journal. The server responded with message: " + response.body());
+            } else {
+                System.out.println("Response: " + response.body());
+                List<Envelope> envelopes = EventJournal.Toolbox.deserialize(response.body(), Envelope.class, List.class);
+                return new EventStream(envelopes.stream().map(Envelope::getData)
+                        .map(data -> EventJournal.Toolbox.deserialize(data.getSerializedMessage(), Message.Event.class))
+                        .toList());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void checkConnection() {

@@ -2,6 +2,7 @@ package com.wemojema.api;
 
 import com.eventjournal.api.Aggregate;
 import com.eventjournal.api.StreamId;
+import com.wemojema.fixtures.TestEvent;
 
 public class TestAggregate implements Aggregate {
     int version;
@@ -20,4 +21,10 @@ public class TestAggregate implements Aggregate {
     public Integer version() {
         return version;
     }
+
+    public void apply(TestEvent event) {
+        version++;
+        // apply the event data to the model
+    }
+
 }
