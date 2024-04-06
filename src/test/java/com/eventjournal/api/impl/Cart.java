@@ -9,9 +9,7 @@ import java.util.List;
 
 public class Cart extends VersionedAggregate {
 
-    String id;
     List<String> items = new ArrayList<>();
-    int version;
 
     public Cart() {
     }

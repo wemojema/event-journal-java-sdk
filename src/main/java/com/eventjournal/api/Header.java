@@ -137,7 +137,7 @@ public class Header {
      * @param aggregateVersion the aggregateVersion of the aggregate for which this message is raised
      * @return a new MessageHeader
      */
-    public static Header headOfChain(Class<? extends Aggregate> aggregateType, String aggregateId, Class<? extends Message> messageType, int aggregateVersion) {
+    public static Header headOfChain(Class<? extends Aggregate> aggregateType, String aggregateId, Class<? extends Message> messageType, long aggregateVersion) {
         return new Header(StreamId.of(aggregateType, aggregateId), messageType, aggregateVersion + 1);
     }
 
@@ -165,7 +165,7 @@ public class Header {
      * @param messageId     the id for this event or command
      * @param correlationId the id identifying all events or commands in a single chain of events for full traceability
      */
-    public Header(String streamId, String messageType, Instant timestamp, int sequence, String causationId, String messageId, String correlationId) {
+    public Header(String streamId, String messageType, Instant timestamp, long sequence, String causationId, String messageId, String correlationId) {
         this.streamId = Objects.requireNonNull(streamId, "Stream ID is required");
         this.messageType = Objects.requireNonNull(messageType, "Message Type is required");
         this.timestamp = Objects.requireNonNull(timestamp, "Timestamp is required!");
@@ -187,7 +187,7 @@ public class Header {
      * @param causationId the event or command that caused this event or command
      */
     @Deprecated
-    public Header(String streamId, Class<? extends Message> messageType, int sequence, String causationId) {
+    public Header(String streamId, Class<? extends Message> messageType, long sequence, String causationId) {
         this.streamId = Objects.requireNonNull(streamId, "Stream ID is required");
         this.messageType = Objects.requireNonNull(messageType, "Message Type is required").getSimpleName();
         this.sequence = sequence;
@@ -261,7 +261,7 @@ public class Header {
         }
     }
 
-    public void setSequence(int sequence) {
+    public void setSequence(long sequence) {
         this.sequence = sequence;
     }
 
