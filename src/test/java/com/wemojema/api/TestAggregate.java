@@ -18,7 +18,7 @@ public class TestAggregate implements Aggregate {
     }
 
     @Override
-    public Integer version() {
+    public long version() {
         return version;
     }
 

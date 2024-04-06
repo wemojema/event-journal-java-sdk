@@ -13,9 +13,12 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
 
+/**
+ * Signs requests to the Event Journal API using HMAC.
+ */
 public class HmacRequestSigner {
     private static final Logger log = LoggerFactory.getLogger(HmacRequestSigner.class);
-    // Included in the signature to inform Veracode of the signature version.
+
     protected static final String REQUEST_VERSION_STRING = "ej_request_version_1";
 
     // Expected format for the unencrypted data string.

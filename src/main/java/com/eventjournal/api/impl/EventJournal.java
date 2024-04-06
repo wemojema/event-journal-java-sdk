@@ -1,9 +1,6 @@
 package com.eventjournal.api.impl;
 
-import com.eventjournal.api.Aggregate;
-import com.eventjournal.api.Envelope;
-import com.eventjournal.api.Message;
-import com.eventjournal.api.StreamId;
+import com.eventjournal.api.*;
 import com.eventjournal.api.ex.IncompleteAggregateException;
 import com.eventjournal.api.ex.MissingEventHandlerException;
 import com.eventjournal.auth.APIKeys;
@@ -20,6 +17,27 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * The EventJournal is the primary interface for interacting with the EventJournal API.
+ * It provides methods for recording and playing back events. It also provides a method for
+ * instantiating an Aggregate and applying events to it.
+ * <p>
+ * To obtain API Keys visit: <a href="https://event-journal.com">event-journal.com</a>
+ * <p>
+ * example usage:
+ * <pre>
+ * EventJournal ej = new EventJournal("publicKey","secretKey");
+ * ej.record(new SomethingHappened()); // SomethingHappened is an implementation of Message.Event
+ * </pre>
+ * Instantiating an EventJournal requires API Keys or a custom EventStoreClient implementation,
+ * it is recommended to use the API Keys constructor. However, in circumstances where
+ * the EventJournal library is used for its utility and conventions related to Event Sourcing
+ * but the EventJournal API is not used, a custom EventStoreClient can be provided.
+ * For instance, if the organization has outgrown the EventJournal API and wishes to implement
+ * their own event store, it's possible to do so and continue using this library for its
+ * functionality in rehydrating Aggregates and guarding against StaleAggregates, as well
+ * as the opinions it takes regarding the Event Data structures and protections it provides for them.
+ */
 public class EventJournal {
     private static final Logger log = LoggerFactory.getLogger(EventJournal.class);
 
@@ -57,7 +75,7 @@ public class EventJournal {
 
         events.stream()
                 .filter(e -> e.timestamp().isBefore(timestamp) || e.timestamp().equals(timestamp))
-                .sorted(Comparator.comparing(Message.Event::version))
+                .sorted(Comparator.comparing(Message.Event::sequence))
                 .forEach(e -> applyEvent(aggregate, e));
 
         return aggregate;
@@ -75,6 +93,9 @@ public class EventJournal {
     private static <T extends Aggregate> void applyEvent(T aggregate, Message.Event e) {
         try {
             aggregate.getClass().getMethod("apply", e.getClass()).invoke(aggregate, e);
+            if(aggregate instanceof VersionedAggregate versionedAggregate) {
+                versionedAggregate.incrementVersion();
+            }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new MissingEventHandlerException("Failed to invoke the apply method for Event: " + e.getClass().getSimpleName() + " on Aggregate: " + aggregate.getClass().getSimpleName(), ex);
         }
@@ -100,7 +121,7 @@ public class EventJournal {
         static {
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
             mapper.registerModule(new JavaTimeModule());
-            MessageTypeIdResolver.scanForTypes(mapper);
+            Message.MessageTypeIdResolver.scanForTypes(mapper);
         }
 
         public static String serialize(Object obj) {

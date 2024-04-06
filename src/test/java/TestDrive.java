@@ -13,8 +13,11 @@ public class TestDrive {
         integrationTest___StoreAndReadEvent();
     }
 
+
+    //Public Key: F5I655ECVD5H4YEFHS7M1QYVK38X8G0V
+    //Secret Key: h>OlTIqpyM1b9B2zxHtcS>ZkB/IyZl2<zJ<oGGe+<j430TUXZDpt/14MjXTHj8xn
     public static void integrationTest___StoreAndReadEvent() {
-        EventJournal ej = new EventJournal("IG8DPC910RFHG9DVPIUOKREZEE52T7QD", "tv3bvRM4mqbza14BiEkbD3D>1LFg8z6xjuskaG/zfq<NDHbPW/s1ljiC5Xlh8kC<");
+        EventJournal ej = new EventJournal("F5I655ECVD5H4YEFHS7M1QYVK38X8G0V", "h>OlTIqpyM1b9B2zxHtcS>ZkB/IyZl2<zJ<oGGe+<j430TUXZDpt/14MjXTHj8xn");
         String AGG_ID = UUID.randomUUID().toString();
 
         List<Message> events = IntStream.range(0, 10)

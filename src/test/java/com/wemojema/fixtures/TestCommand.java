@@ -32,7 +32,7 @@ public class TestCommand extends Message.Command {
     }
 
     @Override
-    public int version() {
+    public long sequence() {
         return version;
     }
 

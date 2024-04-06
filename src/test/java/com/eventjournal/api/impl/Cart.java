@@ -1,14 +1,13 @@
 package com.eventjournal.api.impl;
 
-import com.eventjournal.api.Aggregate;
 import com.eventjournal.api.Message;
-import com.eventjournal.api.StreamId;
+import com.eventjournal.api.VersionedAggregate;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Cart implements Aggregate {
+public class Cart extends VersionedAggregate {
 
     String id;
     List<String> items = new ArrayList<>();
@@ -19,21 +18,6 @@ public class Cart implements Aggregate {
 
     public Cart(String id) {
         this.id = id;
-    }
-
-    @Override
-    public Integer version() {
-        return version;
-    }
-
-    @Override
-    public String streamId() {
-        return StreamId.of(Cart.class, id);
-    }
-
-    @Override
-    public String getId() {
-        return id;
     }
 
     public Message.Event handle(AddItem command) {

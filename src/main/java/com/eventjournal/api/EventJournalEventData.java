@@ -2,6 +2,10 @@ package com.eventjournal.api;
 
 import io.cloudevents.CloudEventData;
 
+/**
+ * Event data for an event journal event.
+ * Implements the CloudEventData interface.
+ */
 public class EventJournalEventData implements CloudEventData {
     private String serializedMessage;
 

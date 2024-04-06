@@ -13,10 +13,8 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.Flow;
 
 class Client implements EventStoreClient {
     Logger log = LoggerFactory.getLogger(Client.class);
@@ -60,27 +58,21 @@ class Client implements EventStoreClient {
         }
     }
 
+    /**
+     * Saves a single envelope to the event journal
+     * a wrapper on the save(List<Envelope> envelopes) method
+     * here for convenience
+     * @param envelope the envelope to save
+     */
     @Override
     public void save(Envelope envelope) {
         save(List.of(envelope));
     }
 
-    private static class EJBodyPublisher implements HttpRequest.BodyPublisher {
-        @Override
-        public long contentLength() {
-            return 0;
-        }
-
-        @Override
-        public void subscribe(Flow.Subscriber<? super ByteBuffer> subscriber) {
-
-        }
-    }
-
-    private static class VerificationRequest {
-
-    }
-
+    /**
+     * The Data Structure required by the host to save a list of envelopes
+     * in the simplest form it looks like this: {messages: [{...}] }
+     */
     private static class EventJournalSaveRequest {
         List<Envelope> messages;
 
@@ -93,6 +85,10 @@ class Client implements EventStoreClient {
         }
     }
 
+    /**
+     * The Data Structure required by the host to retrieve a stream of events
+     * in the simplest form it looks like this: {streamId: "streamId", since: 0}
+     */
     private static class EventJournalPlaybackRequest {
         String streamId;
         int since;
@@ -107,6 +103,10 @@ class Client implements EventStoreClient {
         }
     }
 
+    /**
+     * the exposed method to save a list of envelopes to the event journal
+     * @param envelopeList the list of envelopes to save
+     */
     @Override
     public void save(List<Envelope> envelopeList) {
         String body = EventJournal.Toolbox.serialize(new EventJournalSaveRequest(envelopeList));
@@ -132,6 +132,12 @@ class Client implements EventStoreClient {
         return response.statusCode() >= 200 && response.statusCode() < 300;
     }
 
+    /**
+     * Retrieves an event stream from the event journal host
+     *
+     * @param streamId     the stream id to retrieve
+     * @return an event stream
+     */
     @Override
     public EventStream stream(String streamId) {
         try {
@@ -160,6 +166,9 @@ class Client implements EventStoreClient {
         }
     }
 
+    /**
+     * Checks the connection to the event journal host
+     */
     public void checkConnection() {
         try {
             Header header = Header.Signature(keys, CONNECTION_VERIFICATION_URL, "{}");
@@ -197,4 +206,37 @@ class Client implements EventStoreClient {
         }
     }
 
+    /**
+     * Represents an error response from the event journal host.
+     */
+    public static class EventJournalErrorResponse {
+        String failureReason;
+        List<String> errors;
+        List<String> causes;
+
+        private EventJournalErrorResponse() {
+
+        }
+
+        public String getFailureReason() {
+            return failureReason;
+        }
+
+        public List<String> getErrors() {
+            return errors;
+        }
+
+        public List<String> getCauses() {
+            return causes;
+        }
+
+        @Override
+        public String toString() {
+            return "EventJournalErrorResponse{" +
+                    "failureReason='" + failureReason + '\'' +
+                    ", errors=" + errors +
+                    ", causes=" + causes +
+                    '}';
+        }
+    }
 }

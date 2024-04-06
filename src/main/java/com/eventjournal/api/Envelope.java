@@ -16,6 +16,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * The Envelope is a CloudEvent implementation that wraps a Message.
+ * It is the primary data structure used by the EventJournal API, and contains
+ * the MessageHeader and the serialized Message. The Envelope is used to
+ * carry the Message across applications and services.
+ */
 public class Envelope implements CloudEvent {
     @JsonIgnore
     private static final Logger log = LoggerFactory.getLogger(Envelope.class);
@@ -73,7 +79,7 @@ public class Envelope implements CloudEvent {
     }
 
     @JsonIgnore // ignored here because it's stored in the header and not required in the cloudEvent interface
-    public int getSequence() {
+    public long getSequence() {
         return header.getSequence();
     }
 
