@@ -1,12 +1,12 @@
 <configuration>
 
-    <appender name="STDOUT" class="io.symphonia.lambda.logging.DefaultConsoleAppender">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%level] %logger{13} %message%n</pattern>
         </encoder>
     </appender>
 
-    <root level="${LOG_LEVEL:-TRACE}">
+    <root level="TRACE">
         <appender-ref ref="STDOUT" />
     </root>
 

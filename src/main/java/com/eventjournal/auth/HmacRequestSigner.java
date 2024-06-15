@@ -10,6 +10,7 @@ import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -53,10 +54,10 @@ public class HmacRequestSigner {
      * @param requestBody The body of the request
      * @return The value to be put in the Authorization header
      */
-    public static String signRequest(final APIKeys apiKeys, final URL url, final String requestBody) {
+    public static String signRequest(final APIKeys apiKeys, final URL url, Instant instant, final String requestBody) {
         final String urlPath = (url.getQuery() == null) ? url.getPath() : url.getPath().concat("?").concat(url.getQuery());
         final String data = formatSigningData(apiKeys.publicKey, url.getHost(), urlPath, requestBody);
-        final String timestamp = String.valueOf(System.currentTimeMillis());
+        final String timestamp = String.valueOf(instant);
         final String nonce = Base64.getEncoder().encodeToString(generateRandomBytes(16));
         final String signature;
         try {
@@ -76,10 +77,12 @@ public class HmacRequestSigner {
     protected static byte[] sign(final String secretKey, final String data, final String timestamp, final String nonce)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalStateException, UnsupportedEncodingException {
         final byte[] keyBytes = secretKey.getBytes();
-        final byte[] nonceBytes = nonce.getBytes();
-        final byte[] encryptedNonce = hmacSha256(nonceBytes, keyBytes);
+        final byte[] encryptedNonce = hmacSha256(nonce, keyBytes);
+        log.trace("Base64 Encrypted Nonce: {}", Base64.getEncoder().encodeToString(encryptedNonce));
         final byte[] encryptedTimestamp = hmacSha256(timestamp, encryptedNonce);
+        log.trace("Base64 Encrypted Timestamp: {}", Base64.getEncoder().encodeToString(encryptedTimestamp));
         final byte[] signingKey = hmacSha256(REQUEST_VERSION_STRING, encryptedTimestamp);
+        log.trace("Base64 Signing Key: {}", Base64.getEncoder().encodeToString(signingKey));
         return hmacSha256(data, signingKey);
     }
 
@@ -88,13 +91,6 @@ public class HmacRequestSigner {
         final Mac mac = Mac.getInstance(HMAC_SHA_256);
         mac.init(new SecretKeySpec(key, HMAC_SHA_256));
         return mac.doFinal(data.getBytes(UTF_8));
-    }
-
-    private static byte[] hmacSha256(final byte[] data, final byte[] key)
-            throws NoSuchAlgorithmException, InvalidKeyException {
-        final Mac mac = Mac.getInstance(HMAC_SHA_256);
-        mac.init(new SecretKeySpec(key, HMAC_SHA_256));
-        return mac.doFinal(data);
     }
 
     private static byte[] generateRandomBytes(final int size) {
