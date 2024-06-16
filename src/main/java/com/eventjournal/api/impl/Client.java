@@ -143,7 +143,7 @@ class Client implements EventStoreClient {
         try {
             String body = EventJournal.Toolbox.serialize(new EventJournalPlaybackRequest(streamId, 0));
             HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
-            System.out.println("Body: " + body);
+            log.trace("Body: {}", body);
             Header authHeader = Header.Signature(keys, PLAYBACK_URL, body);
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .header(authHeader.key, authHeader.value)
@@ -155,7 +155,7 @@ class Client implements EventStoreClient {
                 log.error("Server Response: {}", response.body());
                 throw new RuntimeException("Failed to retrieve the event stream from Event Journal. The server responded with message: " + response.body());
             } else {
-                System.out.println("Response: " + response.body());
+                log.trace("Response: {}", response.body());
                 List<Envelope> envelopes = EventJournal.Toolbox.deserialize(response.body(), Envelope.class, List.class);
                 return new EventStream(envelopes.stream().map(Envelope::getData)
                         .map(data -> EventJournal.Toolbox.deserialize(data.getSerializedMessage(), Message.Event.class))
