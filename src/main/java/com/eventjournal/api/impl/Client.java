@@ -62,6 +62,7 @@ class Client implements EventStoreClient {
      * Saves a single envelope to the event journal
      * a wrapper on the save(List<Envelope> envelopes) method
      * here for convenience
+     *
      * @param envelope the envelope to save
      */
     @Override
@@ -105,6 +106,7 @@ class Client implements EventStoreClient {
 
     /**
      * the exposed method to save a list of envelopes to the event journal
+     *
      * @param envelopeList the list of envelopes to save
      */
     @Override
@@ -135,7 +137,7 @@ class Client implements EventStoreClient {
     /**
      * Retrieves an event stream from the event journal host
      *
-     * @param streamId     the stream id to retrieve
+     * @param streamId the stream id to retrieve
      * @return an event stream
      */
     @Override
@@ -143,7 +145,7 @@ class Client implements EventStoreClient {
         try {
             String body = EventJournal.Toolbox.serialize(new EventJournalPlaybackRequest(streamId, 0));
             HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofString(body);
-            System.out.println("Body: " + body);
+            log.trace("Body: {}", body);
             Header authHeader = Header.Signature(keys, PLAYBACK_URL, body);
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .header(authHeader.key, authHeader.value)
@@ -151,11 +153,11 @@ class Client implements EventStoreClient {
                     .POST(bodyPublisher)
                     .build();
             HttpResponse<String> response = sendRequest(httpRequest);
-            if(!isSuccessful(response)) {
+            if (!isSuccessful(response)) {
                 log.error("Server Response: {}", response.body());
                 throw new RuntimeException("Failed to retrieve the event stream from Event Journal. The server responded with message: " + response.body());
             } else {
-                System.out.println("Response: " + response.body());
+                log.trace("Response: {}", response.body());
                 List<Envelope> envelopes = EventJournal.Toolbox.deserialize(response.body(), Envelope.class, List.class);
                 return new EventStream(envelopes.stream().map(Envelope::getData)
                         .map(data -> EventJournal.Toolbox.deserialize(data.getSerializedMessage(), Message.Event.class))

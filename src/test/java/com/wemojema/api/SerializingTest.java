@@ -11,7 +11,7 @@ import com.wemojema.BaseTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class Serializing extends BaseTest {
+public class SerializingTest extends BaseTest {
 
 
     @Test
