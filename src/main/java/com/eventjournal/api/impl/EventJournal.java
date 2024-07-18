@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * The EventJournal is the primary interface for interacting with the EventJournal API.
@@ -59,6 +60,13 @@ public class EventJournal {
         return this;
     }
 
+    public <T extends Aggregate, E extends RuntimeException> T playback(String streamId, Class<T> clazz, Supplier<E> onNotFound) {
+        T playback = this.playback(streamId, clazz, Instant.now());
+        if (playback.getId() == null || playback.getId().isEmpty())
+            throw onNotFound.get();
+        return playback;
+    }
+
     public <T extends Aggregate> T playback(String streamId, Class<T> clazz) {
         return this.playback(streamId, clazz, Instant.now());
     }
@@ -93,7 +101,7 @@ public class EventJournal {
     private static <T extends Aggregate> void applyEvent(T aggregate, Message.Event e) {
         try {
             aggregate.getClass().getMethod("apply", e.getClass()).invoke(aggregate, e);
-            if(aggregate instanceof VersionedAggregate versionedAggregate) {
+            if (aggregate instanceof VersionedAggregate versionedAggregate) {
                 versionedAggregate.incrementVersion();
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
