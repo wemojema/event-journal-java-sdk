@@ -56,6 +56,11 @@ public class EventJournal {
         ((Client) this.client).checkConnection();
     }
 
+    /**
+     * Sets the producer for the EventJournal.
+     * @param producer the producer to set
+     * @return the EventJournal with the producer set
+     */
     public EventJournal withProducer(Message.Producer producer) {
         this.producer = producer;
         return this;
