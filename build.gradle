@@ -4,11 +4,20 @@ plugins {
 }
 
 group 'com.eventjournal'
-version '0.11.12'
+version '0.12.0'
 
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -16,15 +25,40 @@ tasks.register('sourcesJar', Jar) {
     archiveClassifier.set('sources')
 }
 
+tasks.register('javadocJar', Jar) {
+    from tasks.javadoc
+    archiveClassifier.set('javadoc')
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'client'
             artifact tasks.sourcesJar
+            artifact tasks.javadocJar
             from components.java
             pom {
                 name = 'client'
                 description = 'event-journal java sdk'
+                url = 'https://github.com/wemojema/event-journal-java-sdk'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'wemojema'
+                        name = 'Wemojema'
+                        email = 'jeff@wemojema.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/wemojema/event-journal-java-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com/wemojema/event-journal-java-sdk.git'
+                    url = 'https://github.com/wemojema/event-journal-java-sdk'
+                }
             }
         }
     }
@@ -33,12 +67,11 @@ publishing {
 dependencies {
     def jacksonVersion = '2.12.5'
     implementation 'org.slf4j:slf4j-api:2.0.3'
-    implementation 'org.reflections:reflections:0.10.2'
-    api('io.cloudevents:cloudevents-json-jackson:2.3.0')
-    implementation 'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
-    implementation 'com.fasterxml.jackson.core:jackson-databind:' + jacksonVersion
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:' + jacksonVersion
+    api 'org.reflections:reflections:0.10.2'
+    api 'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion
+    api 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion
+    api 'com.fasterxml.jackson.core:jackson-databind:' + jacksonVersion
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:' + jacksonVersion
 
     testImplementation 'ch.qos.logback:logback-classic:1.2.3'
     testImplementation 'io.symphonia:lambda-logging:1.0.3'
