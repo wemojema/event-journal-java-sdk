@@ -48,12 +48,12 @@ public class HmacRequestSigner {
      * Authorization header for use with Event Journal APIs when provided a public key,
      * secret key, and target URL.
      *
-     * @param APIKeys     The public and private keys to use for the signature
+     * @param apiKeys     The public and private keys to use for the signature
      * @param url         The URL of the called API, including query parameters
      * @param requestBody The body of the request
-     * @return The value to be put in the Authorization header
+     * @return The APIKeySignature for use in the Authorization header
      */
-    public static String signRequest(final APIKeys apiKeys, final URL url, final String requestBody) {
+    public static APIKeySignature signRequest(final APIKeys apiKeys, final URL url, final String requestBody) {
         final String urlPath = (url.getQuery() == null) ? url.getPath() : url.getPath().concat("?").concat(url.getQuery());
         final String data = formatSigningData(apiKeys.publicKey, url.getHost(), urlPath, requestBody);
         final String timestamp = String.valueOf(System.currentTimeMillis());
@@ -63,7 +63,7 @@ public class HmacRequestSigner {
             log.trace("Signing Data for {}: {}", urlPath, data);
             signature = Base64.getEncoder().encodeToString(sign(apiKeys.privateKey, data, timestamp, nonce));
             log.trace("Signature for {}: {}", urlPath, signature);
-            return new APIKeySignature(apiKeys.publicKey, timestamp, nonce, signature).toHeader();
+            return new APIKeySignature(apiKeys.publicKey, timestamp, nonce, signature);
         } catch (InvalidKeyException | UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

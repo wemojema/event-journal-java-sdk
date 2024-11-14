@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Instant;
 import java.util.*;
 
@@ -30,56 +29,14 @@ public interface Message {
     MessageCategory messageCategory();
 
     abstract class Command implements Message {
-        Header messageHeader;
+        Header header;
 
         public Command() {
         }
 
         public Command(Header header) {
-            this.messageHeader = header;
-            Objects.requireNonNull(header, "The Message Header cannot be null!");
-            Objects.requireNonNull(header.sequence, "version cannot be null!");
-            Objects.requireNonNull(header.streamId, "Stream ID cannot be null!");
-            Objects.requireNonNull(header.timestamp, "Timestamp cannot be null!");
-        }
-
-        @Override
-        public MessageCategory messageCategory() {
-            return MessageCategory.COMMAND;
-        }
-
-        @Override
-        public String streamId() {
-            return messageHeader.streamId;
-        }
-
-        @Override
-        public Instant timestamp() {
-            return messageHeader.timestamp;
-        }
-
-        @Override
-        public long sequence() {
-            return messageHeader.sequence;
-        }
-
-        @Override
-        public Header header() {
-            return messageHeader;
-        }
-
-    }
-
-    abstract class Event implements Message {
-        Header header;
-
-        public Event() {
-        }
-
-        public Event(Header header) {
             this.header = header;
             Objects.requireNonNull(header, "The Message Header cannot be null!");
-            Objects.requireNonNull(header.sequence, "version cannot be null!");
             Objects.requireNonNull(header.streamId, "Stream ID cannot be null!");
             Objects.requireNonNull(header.timestamp, "Timestamp cannot be null!");
         }
@@ -109,6 +66,54 @@ public interface Message {
             return header;
         }
 
+        public Command withHeader(Header header) {
+            this.header = header;
+            return this;
+        }
+    }
+
+    abstract class Event implements Message {
+        Header header;
+
+        public Event() {
+        }
+
+        public Event(Header header) {
+            this.header = header;
+            Objects.requireNonNull(header, "The Message Header cannot be null!");
+            Objects.requireNonNull(header.streamId, "Stream ID cannot be null!");
+            Objects.requireNonNull(header.timestamp, "Timestamp cannot be null!");
+        }
+
+        @Override
+        public MessageCategory messageCategory() {
+            return MessageCategory.EVENT;
+        }
+
+        @Override
+        public String streamId() {
+            return header.streamId;
+        }
+
+        @Override
+        public Instant timestamp() {
+            return header.timestamp;
+        }
+
+        @Override
+        public long sequence() {
+            return header.sequence;
+        }
+
+        @Override
+        public Header header() {
+            return header;
+        }
+
+        public Event withHeader(Header header) {
+            this.header = header;
+            return this;
+        }
     }
 
     enum MessageCategory {
@@ -126,8 +131,18 @@ public interface Message {
 
     }
 
-    record Producer(String name, URI source) {
-        public static final Producer ANONYMOUS = new Producer("anonymous", URI.create("http://localhost"));
+    class Producer {
+        String name;
+        String version;
+
+        public Producer(String name, String version) {
+            this.name = name;
+            this.version = version;
+        }
+        private Producer() {
+
+        }
+        public static final Producer ANONYMOUS = new Producer("anonymous", "unknown-version");
     }
 
     class MessageTypeIdResolver implements TypeIdResolver {
@@ -145,12 +160,12 @@ public interface Message {
                     .map(p -> p.getName().split("\\.")[0])
                     .distinct()
                     .filter(p -> p != null && !p.isEmpty())
-                    .peek(p -> log.trace("Scanning Package: " + p))
+                    .peek(p -> log.trace("Scanning Package: {}", p))
                     .flatMap(topLevelPackage -> identifyMessageTypes(topLevelPackage).stream())
-                    .peek(c -> log.trace("Found Message Type: " + c.getSimpleName()))
+                    .peek(c -> log.trace("Found Message Type: {}", c.getSimpleName()))
                     .forEach(MessageTypeIdResolver::addType);
 
-            log.trace("Scanning for Event and Command types complete, found: " + MessageTypeIdResolver.availableTypes().size() + " types.");
+            log.trace("Scanning for Event and Command types complete, found: {} types.", MessageTypeIdResolver.availableTypes().size());
         }
 
 

@@ -12,6 +12,12 @@ public class ItemAdded extends Message.Event {
         this.itemId = command.itemId;
     }
 
-    public ItemAdded() {
+    private ItemAdded() {
+
     }
+
+    public ItemAdded(String itemId) {
+        this.itemId = itemId;
+    }
+
 }

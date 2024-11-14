@@ -13,7 +13,7 @@ public class StreamId {
     }
 
     public static String of(Aggregate aggregate) {
-        return of(aggregate.getClass(), aggregate.getId());
+        return of(aggregate.getClass(), aggregate.id());
     }
 
 }

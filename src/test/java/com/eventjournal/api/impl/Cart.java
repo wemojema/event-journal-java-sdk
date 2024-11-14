@@ -1,10 +1,10 @@
 package com.eventjournal.api.impl;
 
 import com.eventjournal.api.Message;
+import com.eventjournal.api.Outcome;
 import com.eventjournal.api.VersionedAggregate;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Cart extends VersionedAggregate {
@@ -19,12 +19,12 @@ public class Cart extends VersionedAggregate {
     }
 
     public Message.Event handle(AddItem command) {
-        return new ItemAdded(this, command);
+        return emit(new ItemAdded(command.itemId), command);
     }
 
-    public List<Message> apply(ItemAdded event) {
+    public Outcome apply(ItemAdded event) {
         this.items.add(event.itemId);
-        return Collections.emptyList();
+        return Outcome.inert();
     }
 
 }

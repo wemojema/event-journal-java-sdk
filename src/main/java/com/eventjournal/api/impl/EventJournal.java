@@ -7,6 +7,7 @@ import com.eventjournal.auth.APIKeys;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
@@ -62,7 +63,7 @@ public class EventJournal {
 
     public <T extends Aggregate, E extends RuntimeException> T playback(String streamId, Class<T> clazz, Supplier<E> onNotFound) {
         T playback = this.playback(streamId, clazz, Instant.now());
-        if (playback.getId() == null || playback.getId().isEmpty())
+        if (playback.id() == null || playback.id().isEmpty())
             throw onNotFound.get();
         return playback;
     }
@@ -79,7 +80,7 @@ public class EventJournal {
                 .events();
 
         if (log.isTraceEnabled())
-            log.trace("Streamed Events: \n" + Toolbox.serialize(events));
+            log.trace("Streamed Events: \n{}", Toolbox.serialize(events));
 
         events.stream()
                 .filter(e -> e.timestamp().isBefore(timestamp) || e.timestamp().equals(timestamp))
@@ -110,11 +111,11 @@ public class EventJournal {
     }
 
     public void record(Message message) {
-        client.save(Envelope.of(message));
+        client.save(Envelope.wrap(message));
     }
 
     public void record(Collection<Message> messages) {
-        List<Envelope> envelopes = messages.stream().map(Envelope::of).toList();
+        List<Envelope> envelopes = messages.stream().map(Envelope::wrap).toList();
         client.save(envelopes);
     }
 
@@ -129,6 +130,7 @@ public class EventJournal {
         static {
             mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
             mapper.registerModule(new JavaTimeModule());
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             Message.MessageTypeIdResolver.scanForTypes(mapper);
         }
 

@@ -151,7 +151,7 @@ public class Header {
      * @return a new MessageHeader
      */
     public static Header headOfChain(Aggregate aggregate, Class<? extends Message> messageType) {
-        return new Header(StreamId.of(aggregate.getClass(), aggregate.getId()), messageType, aggregate.version() + 1L);
+        return new Header(StreamId.of(aggregate.getClass(), aggregate.id()), messageType, aggregate.version() + 1L);
     }
 
     /**
@@ -233,8 +233,8 @@ public class Header {
      *
      * @param key   the key for the metadata
      * @param value the value for the metadata
-     *              IMPORTANT: value must be serializable & deserializable using
-     *              the EventJournal.Toolbox.serialize() & deserialize() methods
+     *              IMPORTANT: value must be serializable &amp; deserializable using
+     *              the EventJournal.Toolbox.serialize() &amp; deserialize() methods
      * @return the value that was put
      */
     public Object put(String key, Object value) {

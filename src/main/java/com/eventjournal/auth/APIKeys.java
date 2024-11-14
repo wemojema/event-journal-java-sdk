@@ -1,17 +1,21 @@
 package com.eventjournal.auth;
 
-import java.net.http.HttpRequest;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 
+/**
+ * APIKeys to sign requests using the public and private keys.
+ */
 public class APIKeys {
 
     String publicKey;
     String privateKey;
     MessageDigest digest;
 
+    /**
+     * @param publicKey  the public key provided by the event-journal.com service. A public key is not sensitive.
+     * @param privateKey the private key provided by the event-journal.com service. A private key is sensitive and should never be committed to a repository.
+     */
     public APIKeys(String publicKey, String privateKey) {
         this.publicKey = publicKey;
         this.privateKey = privateKey;
@@ -22,8 +26,4 @@ public class APIKeys {
         }
     }
 
-    public String sign(HttpRequest.BodyPublisher body, Instant timestamp) {
-        digest.digest(new String(timestamp.toString() + body.toString() + privateKey).getBytes(StandardCharsets.UTF_8));
-        return null;
-    }
 }

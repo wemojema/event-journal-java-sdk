@@ -14,7 +14,7 @@ public abstract class VersionedAggregate implements Aggregate {
     private long version;
 
     @Override
-    public final String getId() {
+    public final String id() {
         return id;
     }
 
@@ -31,5 +31,46 @@ public abstract class VersionedAggregate implements Aggregate {
     public final void incrementVersion() {
         this.version++;
     }
+
+    /**
+     * Emits a new event with the header set to the current aggregate id and version.
+     * @param event the event to emit
+     * @param cause the command that caused the event
+     * @return the event with the header properly constructed
+     */
+    protected final Message.Event emit(Message.Event event, Message.Command cause) {
+        return event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
+    }
+
+    /**
+     * Emits a new event with the header set to the current aggregate id and version.
+     * @param event the event to emit
+     * @param cause the event that caused the event
+     * @return the event with the header properly constructed
+     */
+    protected final Message.Event emit(Message.Event event, Message.Event cause) {
+        return event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
+    }
+
+    /**
+     * Emits a new command with the header set to the current aggregate id and version.
+     * @param command the command to emit
+     * @param cause the event that caused the command
+     * @return the command with the header properly constructed
+     */
+    protected final Message.Command emit(Message.Command command, Message.Event cause) {
+        return command.withHeader(Header.sideEffectOf(cause, this, command.getClass()));
+    }
+
+    /**
+     * Emits a new command with the header set to the current aggregate id and version.
+     * @param command the command to emit
+     * @param cause the command that caused the command
+     * @return the command with the header properly constructed
+     */
+    protected final Message.Command emit(Message.Command command, Message.Command cause) {
+        return command.withHeader(Header.sideEffectOf(cause, this, command.getClass()));
+    }
+
 
 }

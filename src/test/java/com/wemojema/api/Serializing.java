@@ -17,8 +17,8 @@ public class Serializing extends BaseTest {
     @Test
     public void should_deserialize_event_using_minimal_classname_types() {
         Cart cart = new Cart(faker.idNumber().valid());
-        ItemAdded itemAdded = new ItemAdded(cart, new AddItem(Header.headOfChain(Cart.class, cart.getId(), AddItem.class, 0), faker.idNumber().valid()));
-        Envelope envelope = Envelope.of(itemAdded);
+        ItemAdded itemAdded = new ItemAdded(cart, new AddItem(Header.headOfChain(Cart.class, cart.id(), AddItem.class, 0), faker.idNumber().valid()));
+        Envelope envelope = Envelope.wrap(itemAdded);
 
 
         String packed = EventJournal.Toolbox.serialize(envelope);

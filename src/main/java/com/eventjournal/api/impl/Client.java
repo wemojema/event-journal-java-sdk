@@ -48,7 +48,7 @@ class Client implements EventStoreClient {
 
         static Header Signature(APIKeys keys, URL url, String body) {
             return new Header("Authorization",
-                    Base64.getEncoder().encodeToString(HmacRequestSigner.signRequest(keys, url, body).getBytes())
+                    Base64.getEncoder().encodeToString(HmacRequestSigner.signRequest(keys, url, body).toHeader().getBytes())
             );
         }
 
