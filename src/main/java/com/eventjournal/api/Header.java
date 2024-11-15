@@ -103,9 +103,11 @@ public class Header {
     /**
      * Use this static convenience constructor when you need to create
      * a message header as a side effect of a message.
-     * "Side Effects" are typically commands that are raised as a result of an event.
+     * "Side Effects" are Commands that are emitted as a result of an event.
      * These messages will appear in a correlation chain, but can be related to aggregates other than the
      * original aggregate for which the Cause is related.
+     * For instance, an "OrderPlaced" event might cause a "ProcurePayment" command to be emitted. The "ProcurePayment"
+     * command would be a side effect of the "OrderPlaced" event, and might be emitted by a different aggregate.
      *
      * @param cause           the message that caused this side effect
      * @param targetAggregate the aggregate that this side effect is related to
@@ -144,7 +146,7 @@ public class Header {
     /**
      * Use this static convenience constructor when you need to create
      * a message header for the first message in a correlation chain
-     * on an already established aggregate
+     * for an established aggregate
      *
      * @param aggregate   the Aggregate for which this message is raised
      * @param messageType the Class of the Message

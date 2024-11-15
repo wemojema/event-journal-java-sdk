@@ -2,13 +2,19 @@ import com.eventjournal.api.Header;
 import com.eventjournal.api.Message;
 import com.eventjournal.api.impl.EventJournal;
 import com.wemojema.api.TestAggregate;
-import com.wemojema.fixtures.TestEvent;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 public class TestDrive {
+
+    public static class TestEvent extends Message.Event {
+        public TestEvent(Header header) {
+            super(header);
+        }
+    }
+
     public static void main(String[] args) {
         integrationTest___StoreAndReadEvent();
     }

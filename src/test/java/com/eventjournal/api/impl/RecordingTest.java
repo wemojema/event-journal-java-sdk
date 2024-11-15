@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class Recording extends BaseTest {
+public class RecordingTest extends BaseTest {
 
     EventJournal eventJournal;
     MockEventStoreClient fakeEventStoreClient;

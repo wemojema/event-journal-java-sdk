@@ -2,7 +2,6 @@ package com.eventjournal.api;
 
 /**
  * Event data for an event journal event.
- * Implements the CloudEventData interface.
  */
 public class EventJournalEventData {
     private String serializedMessage;
@@ -12,10 +11,6 @@ public class EventJournalEventData {
     }
 
     private EventJournalEventData() {
-    }
-
-    public byte[] toBytes() {
-        return serializedMessage.getBytes();
     }
 
     @Override
