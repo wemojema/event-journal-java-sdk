@@ -48,8 +48,19 @@ public abstract class VersionedAggregate implements Aggregate {
      * @param cause the command that caused the event
      */
     protected final void emit(Message.Event event, Message.Command cause) {
+        if(!applyMethodExists(event))
+            throw new MissingApplyMethodException(this.getClass(), event.getClass());
         event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
         eventJournal.record(event);
+    }
+
+    private boolean applyMethodExists(Message.Event event) {
+        try {
+            this.getClass().getMethod("apply", event.getClass());
+            return true;
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 
     /**
@@ -59,6 +70,8 @@ public abstract class VersionedAggregate implements Aggregate {
      * @param cause the event that caused the event
      */
     protected final void emit(Message.Event event, Message.Event cause) {
+        if(!applyMethodExists(event))
+            throw new MissingApplyMethodException(this.getClass(), event.getClass());
         eventJournal.record(event.withHeader(Header.resultingFrom(cause, this, event.getClass())));
     }
 

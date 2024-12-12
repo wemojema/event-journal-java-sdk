@@ -1,6 +1,7 @@
 package com.eventjournal.api.impl;
 
-import com.eventjournal.api.Outcome;
+import com.eventjournal.api.Header;
+import events.SomethingHappened;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,11 @@ public class Cart extends VersionedAggregate {
         super.emit(new ItemAdded(command.itemId), command);
     }
 
-    public Outcome apply(ItemAdded event) {
+    public void apply(ItemAdded event) {
         this.items.add(event.itemId);
-        return Outcome.inert();
     }
 
+    public void emitEventForWhichTheCartDoesNotHaveAnApplyMethod() {
+        super.emit(new SomethingHappened(Header.headOfChain(this, SomethingHappened.class), "", "", "", ""), new ItemAdded(""));
+    }
 }

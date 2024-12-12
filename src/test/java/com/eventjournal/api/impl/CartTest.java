@@ -20,6 +20,16 @@ public class CartTest extends BaseTest {
         Cart playbackCart = eventJournal.playback(Cart.class, cart.id());
 
         Assertions.assertFalse(playbackCart.items.isEmpty());
+        Assertions.assertEquals(1, playbackCart.version());
+    }
+
+    @Test
+    void should_cause_a_MissingApplyMethodException_when_a_cart_emits_an_event_it_does_not_have_an_apply_method_for() {
+        Cart cart = eventJournal.playback(Cart.class, faker.idNumber().valid());
+
+        Assertions.assertThrows(MissingApplyMethodException.class, cart::emitEventForWhichTheCartDoesNotHaveAnApplyMethod);
+        Cart cartPlayback = eventJournal.playback(Cart.class, cart.id());
+        Assertions.assertEquals(0, cartPlayback.version());
     }
 
 
