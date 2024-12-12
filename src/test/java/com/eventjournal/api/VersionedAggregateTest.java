@@ -1,5 +1,6 @@
 package com.eventjournal.api;
 
+import com.eventjournal.api.impl.VersionedAggregate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

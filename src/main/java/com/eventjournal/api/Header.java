@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * creating a new Header for a Message. The Header is immutable.
  * <p>
  * Opinions and concepts:
- * HeadOfChain - the first (and possibly only) message in a chain of messages
+ * `HeadOfChain` - the first (and possibly only) message in a chain of messages
  * ResultingFrom - a message that is a direct result of another message - Used to indicate an Event is the result of a Command
  * SideEffectOf - a message that is a side effect of another message - Used to indicate a Command is a Side Effect of an Event
  * <p>

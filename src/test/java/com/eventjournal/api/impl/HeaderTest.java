@@ -1,5 +1,7 @@
-package com.eventjournal.api;
+package com.eventjournal.api.impl;
 
+import com.eventjournal.api.Header;
+import com.eventjournal.api.Message;
 import com.wemojema.BaseTest;
 import com.wemojema.api.TestAggregate;
 import com.wemojema.fixtures.TestCommand;
@@ -12,7 +14,7 @@ import java.time.Instant;
 
 class HeaderTest extends BaseTest {
     Header uut;
-
+    EventJournal eventJournal = new EventJournal(new MockEventStoreClient());
     @BeforeEach
     void setUp() {
         uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class, 0);
@@ -21,17 +23,17 @@ class HeaderTest extends BaseTest {
     @Test
     void should_be_of_message_type_COMMAND() {
         uut = Header.headOfChain(TestAggregate.class, faker.idNumber().valid(), TestCommand.class, 0);
-        Assertions.assertEquals(Message.MessageCategory.COMMAND, uut.category);
+        Assertions.assertEquals(Message.MessageCategory.COMMAND, uut.category());
     }
 
     @Test
     void should_be_of_message_type_EVENT() {
-        TestAggregate testAggregate = new TestAggregate();
-        TestCommand testCommand = new TestCommand("TestAggregate|1", Instant.now(), 0, Header.headOfChain(TestAggregate.class, "1", TestCommand.class, 0));
+        TestAggregate testAggregate = eventJournal.playback(TestAggregate.class, faker.idNumber().valid());
+        TestCommand testCommand = new TestCommand("TestAggregate|1", Instant.now(), 0, Header.headOfChain(TestAggregate.class, testAggregate.id(), TestCommand.class, 0));
         // act
         uut = Header.resultingFrom(testCommand, testAggregate, TestEvent.class);
         // assert
-        Assertions.assertEquals(Message.MessageCategory.EVENT, uut.category);
+        Assertions.assertEquals(Message.MessageCategory.EVENT, uut.category());
     }
 
 //    @Test

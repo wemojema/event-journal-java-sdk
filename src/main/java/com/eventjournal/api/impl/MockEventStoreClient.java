@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * A mock implementation of the EventStoreClient interface.
  * Useful for testing the EventJournal without needing to connect to a real event store.
  */
-class MockEventStoreClient implements EventStoreClient {
+public class MockEventStoreClient implements EventStoreClient {
 
     private final List<Envelope> savedMessages = new ArrayList<>();
 

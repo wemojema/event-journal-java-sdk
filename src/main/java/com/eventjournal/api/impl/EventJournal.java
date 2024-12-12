@@ -1,6 +1,8 @@
 package com.eventjournal.api.impl;
 
-import com.eventjournal.api.*;
+import com.eventjournal.api.Envelope;
+import com.eventjournal.api.Message;
+import com.eventjournal.api.StreamId;
 import com.eventjournal.api.ex.IncompleteAggregateException;
 import com.eventjournal.api.ex.MissingEventHandlerException;
 import com.eventjournal.auth.APIKeys;
@@ -17,12 +19,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * The EventJournal is the primary interface for interacting with the EventJournal API.
  * It provides methods for recording and playing back events. It also provides a method for
- * instantiating an Aggregate and applying events to it.
+ * instantiating an VersionedAggregate and applying events to it.
  * <p>
  * To obtain API Keys visit: <a href="https://event-journal.com">event-journal.com</a>
  * <p>
@@ -37,7 +38,7 @@ import java.util.function.Supplier;
  * but the EventJournal API is not used, a custom EventStoreClient can be provided.
  * For instance, if the organization has outgrown the EventJournal API and wishes to implement
  * their own event store, it's possible to do so and continue using this library for its
- * functionality in rehydrating Aggregates and guarding against StaleAggregates, as well
+ * functionality in rehydrating VersionedAggregates and guarding against StaleAggregates, as well
  * as the opinions it takes regarding the Event Data structures and protections it provides for them.
  */
 public class EventJournal {
@@ -58,6 +59,7 @@ public class EventJournal {
 
     /**
      * Sets the producer for the EventJournal.
+     *
      * @param producer the producer to set
      * @return the EventJournal with the producer set
      */
@@ -66,18 +68,11 @@ public class EventJournal {
         return this;
     }
 
-    public <T extends Aggregate, E extends RuntimeException> T playback(String streamId, Class<T> clazz, Supplier<E> onNotFound) {
-        T playback = this.playback(streamId, clazz, Instant.now());
-        if (playback.id() == null || playback.id().isEmpty())
-            throw onNotFound.get();
-        return playback;
+    private <T extends VersionedAggregate> T playbackAtPointInTime(String streamId, Class<T> clazz) {
+        return this.playbackAtPointInTime(streamId, clazz, Instant.now());
     }
 
-    public <T extends Aggregate> T playback(String streamId, Class<T> clazz) {
-        return this.playback(streamId, clazz, Instant.now());
-    }
-
-    public <T extends Aggregate> T playback(String streamId, Class<T> clazz, Instant timestamp) {
+    private <T extends VersionedAggregate> T playbackAtPointInTime(String streamId, Class<T> clazz, Instant timestamp) {
         T aggregate = instantiate(clazz);
 
         List<Message.Event> events = client
@@ -95,7 +90,7 @@ public class EventJournal {
         return aggregate;
     }
 
-    private <T extends Aggregate> T instantiate(Class<T> clazz) {
+    private <T extends VersionedAggregate> T instantiate(Class<T> clazz) {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
@@ -104,12 +99,10 @@ public class EventJournal {
         }
     }
 
-    private static <T extends Aggregate> void applyEvent(T aggregate, Message.Event e) {
+    private static <T extends VersionedAggregate> void applyEvent(T aggregate, Message.Event e) {
         try {
             aggregate.getClass().getMethod("apply", e.getClass()).invoke(aggregate, e);
-            if (aggregate instanceof VersionedAggregate versionedAggregate) {
-                versionedAggregate.incrementVersion();
-            }
+            aggregate.incrementVersion();
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new MissingEventHandlerException("Failed to invoke the apply method for Event: " + e.getClass().getSimpleName() + " on Aggregate: " + aggregate.getClass().getSimpleName(), ex);
         }
@@ -124,8 +117,10 @@ public class EventJournal {
         client.save(envelopes);
     }
 
-    public <T extends Aggregate> T playback(Class<T> aggregateType, String aggregateId) {
-        return this.playback(StreamId.of(aggregateType, aggregateId), aggregateType);
+    public <T extends VersionedAggregate> T playback(Class<T> aggregateType, String aggregateId) {
+        return (T) this.playbackAtPointInTime(StreamId.of(aggregateType, aggregateId), aggregateType)
+                .withEventJournal(this)
+                .withId(aggregateType, aggregateId);
     }
 
     public static class Toolbox {

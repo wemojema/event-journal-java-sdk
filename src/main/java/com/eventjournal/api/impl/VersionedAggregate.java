@@ -1,4 +1,10 @@
-package com.eventjournal.api;
+package com.eventjournal.api.impl;
+
+import com.eventjournal.api.Aggregate;
+import com.eventjournal.api.Header;
+import com.eventjournal.api.Message;
+import com.eventjournal.api.StreamId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Base class for all versioned aggregates.
@@ -12,6 +18,9 @@ public abstract class VersionedAggregate implements Aggregate {
 
     protected String id;
     private long version;
+
+    @JsonIgnore
+    private EventJournal eventJournal;
 
     @Override
     public final String id() {
@@ -34,28 +43,30 @@ public abstract class VersionedAggregate implements Aggregate {
 
     /**
      * Emits a new event with the header set to the current aggregate id and version.
+     *
      * @param event the event to emit
      * @param cause the command that caused the event
-     * @return the event with the header properly constructed
      */
-    protected final Message.Event emit(Message.Event event, Message.Command cause) {
-        return event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
+    protected final void emit(Message.Event event, Message.Command cause) {
+        event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
+        eventJournal.record(event);
     }
 
     /**
      * Emits a new event with the header set to the current aggregate id and version.
+     *
      * @param event the event to emit
      * @param cause the event that caused the event
-     * @return the event with the header properly constructed
      */
-    protected final Message.Event emit(Message.Event event, Message.Event cause) {
-        return event.withHeader(Header.resultingFrom(cause, this, event.getClass()));
+    protected final void emit(Message.Event event, Message.Event cause) {
+        eventJournal.record(event.withHeader(Header.resultingFrom(cause, this, event.getClass())));
     }
 
     /**
      * Emits a new command with the header set to the current aggregate id and version.
+     *
      * @param command the command to emit
-     * @param cause the event that caused the command
+     * @param cause   the event that caused the command
      * @return the command with the header properly constructed
      */
     protected final Message.Command emit(Message.Command command, Message.Event cause) {
@@ -64,8 +75,9 @@ public abstract class VersionedAggregate implements Aggregate {
 
     /**
      * Emits a new command with the header set to the current aggregate id and version.
+     *
      * @param command the command to emit
-     * @param cause the command that caused the command
+     * @param cause   the command that caused the command
      * @return the command with the header properly constructed
      */
     protected final Message.Command emit(Message.Command command, Message.Command cause) {
@@ -73,4 +85,16 @@ public abstract class VersionedAggregate implements Aggregate {
     }
 
 
+    public <T extends VersionedAggregate> T withId(Class<T> clazz, String aggregateId) {
+        if(clazz != this.getClass()) {
+            throw new IllegalArgumentException("Cannot change the type of an aggregate");
+        }
+        this.id = aggregateId;
+        return (T) this;
+    }
+
+    public VersionedAggregate withEventJournal(EventJournal eventJournal) {
+        this.eventJournal = eventJournal;
+        return this;
+    }
 }
