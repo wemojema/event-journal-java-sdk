@@ -18,14 +18,16 @@ public class Cart extends VersionedAggregate {
     }
 
     public void handle(AddItem command) {
-        super.emit(new ItemAdded(command.itemId), command);
+        super.emit(new ItemAdded(this.id, command.itemId), command);
     }
 
     public void apply(ItemAdded event) {
+        if(id == null)
+            id = event.cartId;
         this.items.add(event.itemId);
     }
 
     public void emitEventForWhichTheCartDoesNotHaveAnApplyMethod() {
-        super.emit(new SomethingHappened(Header.headOfChain(this, SomethingHappened.class), "", "", "", ""), new ItemAdded(""));
+        super.emit(new SomethingHappened(Header.headOfChain(this, SomethingHappened.class), "", "", "", ""), new ItemAdded("",""));
     }
 }

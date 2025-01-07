@@ -15,7 +15,7 @@ public class CartTest extends BaseTest {
     void should_result_with_a_Cart_with_items() {
         Cart cart = eventJournal.playback(Cart.class, faker.idNumber().valid());
 
-        cart.handle(new AddItem(Header.headOfChain(Cart.class, cart.id(), ItemAdded.class, 0), faker.idNumber().valid()));
+        cart.handle(new AddItem(Header.headOfChain(Cart.class, cart.id(), AddItem.class, 0), faker.idNumber().valid()));
 
         Cart playbackCart = eventJournal.playback(Cart.class, cart.id());
 

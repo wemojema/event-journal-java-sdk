@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * The EventJournal is the primary interface for interacting with the EventJournal API.
@@ -119,6 +120,29 @@ public class EventJournal {
 
     public <T extends VersionedAggregate> T playback(Class<T> aggregateType, String aggregateId) {
         return (T) this.playbackAtPointInTime(StreamId.of(aggregateType, aggregateId), aggregateType)
+                .withEventJournal(this)
+                .withId(aggregateType, aggregateId);
+    }
+
+    /**
+     * Plays back the aggregate, or if the event store contains no events for the aggregate, throws the exception supplied.
+     *
+     * @param aggregateType the type of the aggregate
+     * @param aggregateId   the id of the aggregate
+     * @param orElseThrow   the supplier to throw if the aggregate is not found
+     * @param <X>           the exception to throw
+     * @param <T>           the type of the aggregate
+     * @return the aggregate
+     * @throws X if the aggregate is not found
+     */
+    public <X extends Throwable, T extends VersionedAggregate> T playbackOrElseThrow(Class<T> aggregateType,
+                                                                                     String aggregateId,
+                                                                                     Supplier<? extends X> orElseThrow) throws X {
+        T versionedAggregate = this.playbackAtPointInTime(StreamId.of(aggregateType, aggregateId), aggregateType);
+        if (versionedAggregate.id == null) {
+            throw orElseThrow.get();
+        }
+        return (T) versionedAggregate
                 .withEventJournal(this)
                 .withId(aggregateType, aggregateId);
     }
