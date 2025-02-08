@@ -183,7 +183,7 @@ class Client implements EventStoreClient {
 
             if (!isSuccessful(response)) {
                 EventJournalErrorResponse errorResponse = EventJournal.Toolbox.deserialize(response.body(), EventJournalErrorResponse.class);
-                log.trace("Server Response: " + errorResponse);
+                log.trace("Server Response: {}", errorResponse);
                 throw new EventJournalConnectionFailedException("Failed to verify your connection to Event Journal. " +
                         "Make sure the API Keys provided are correct. " +
                         "The server responded with message: " +

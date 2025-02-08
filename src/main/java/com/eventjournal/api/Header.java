@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
  * The Header offers several opinionated static constructors for
  * creating a new Header for a Message. The Header is immutable.
  * <p>
- * Opinions and concepts:
- * `HeadOfChain` - the first (and possibly only) message in a chain of messages
- * ResultingFrom - a message that is a direct result of another message - Used to indicate an Event is the result of a Command
- * SideEffectOf - a message that is a side effect of another message - Used to indicate a Command is a Side Effect of an Event
+ * <strong>Opinions and concepts:</strong>
+ * <li><code>HeadOfChain</code> - the first (and possibly only) message in a chain of messages</li>
+ * <li><code>ResultingFrom</code> - a message that is a direct result of another message - Used to indicate an Event is the result of a Command</li>
+ * <li><code>SideEffectOf</code> - a message that is a side effect of another message - Used to indicate a Command is a Side Effect of an Event</li>
  * <p>
  * These static constructors ensure that developers do not have to focus on tying correlation IDs from one message to another.
  * The Header will automatically populate the correlation ID when using the static constructors.
@@ -28,12 +28,13 @@ import java.util.stream.Collectors;
  * <p>
  * example:
  * <pre>
- *         Header header = Header.headOfChain(myAggregate, MyEvent.class);
- *         header.put("my-custom-header", "some-value");
- *         header.get("my-custom-header").ifPresent(System.out::println);
- *         // prints "some-value"
- *         header.get("non-existent-key");
- *         // returns Optional.empty()
+ * <code>Header header = Header.headOfChain(myAggregate, MyEvent.class);
+ * header.put("my-custom-header", "some-value");
+ * header.get("my-custom-header").ifPresent(System.out::println);
+ * // prints "some-value"
+ * header.get("non-existent-key");
+ * // returns Optional.empty()
+ * </code>
  * </pre>
  */
 public class Header {
