@@ -123,3 +123,8 @@ public class ItemAddedToCart extends Message.Event {
 }
 
 ```
+
+### Reactors
+Reactors are classes that listen for events and publish and Outcome in response to those events. They are used primarily as asynchronous handlers of messages. They are a good place to put side effects that are triggered by events. They are also a good place to put code that is non-deterministic, such as code that interacts with the file system or network, as they are configurable to have a retry mechanism.
+
+```java

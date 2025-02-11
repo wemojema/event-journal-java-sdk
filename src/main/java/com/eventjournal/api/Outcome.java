@@ -1,11 +1,15 @@
 package com.eventjournal.api;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Outcome {
 
-    Message message;
+    List<Message> messages = new ArrayList<>();
 
     private Outcome(Message message) {
-        this.message = message;
+        this.messages.add(message);
     }
 
     private Outcome() {
@@ -20,8 +24,20 @@ public class Outcome {
         return new Outcome();
     }
 
-    public Outcome of(Message event) {
-        return new Outcome(event);
+    public static Outcome of(Message... event) {
+        Outcome outcome = new Outcome();
+        outcome.messages.addAll(Arrays.asList(event));
+        return outcome;
+    }
+
+    public Outcome of(List<Message> messages) {
+        Outcome outcome = new Outcome();
+        outcome.messages.addAll(messages);
+        return outcome;
+    }
+
+    public void add(Message message) {
+        this.messages.add(message);
     }
 
 }
