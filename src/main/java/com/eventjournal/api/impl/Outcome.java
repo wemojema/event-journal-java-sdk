@@ -20,6 +20,7 @@ public class Outcome {
     /**
      * Use this method if the Outcome of handling a command or event is inert.
      * As in, no further messages should be recorded as a result of handling a message.
+     *
      * @return an Outcome object representing an inert outcome (contains no further messages).
      */
     public static Outcome inert() {
@@ -32,7 +33,7 @@ public class Outcome {
         return outcome;
     }
 
-    public Outcome of(List<Message> messages) {
+    public static Outcome of(List<Message> messages) {
         Outcome outcome = new Outcome();
         outcome.messages.addAll(messages);
         return outcome;
