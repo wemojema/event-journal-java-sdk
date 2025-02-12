@@ -1,4 +1,6 @@
-package com.eventjournal.api;
+package com.eventjournal.api.impl;
+
+import com.eventjournal.api.Message;
 
 import java.util.ArrayList;
 import java.util.Arrays;

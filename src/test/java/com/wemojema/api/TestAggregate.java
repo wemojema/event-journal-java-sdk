@@ -1,6 +1,6 @@
 package com.wemojema.api;
 
-import com.eventjournal.api.Outcome;
+import com.eventjournal.api.impl.Outcome;
 import com.eventjournal.api.impl.VersionedAggregate;
 import com.wemojema.fixtures.TestEvent;
 

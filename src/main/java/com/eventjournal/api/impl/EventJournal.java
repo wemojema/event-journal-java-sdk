@@ -109,8 +109,9 @@ public class EventJournal {
         }
     }
 
-    public void record(Message message) {
+    public Entry record(Message message) {
         client.save(Envelope.wrap(message));
+        return new Entry(message);
     }
 
     public void record(Collection<Message> messages) {
