@@ -10,28 +10,35 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * The Header contains metadata for a Message, and are required when constructing a Message.
- * Use the Header to store your own additional metadata
- * for a message if needed by way of the put(key, value) method.
- * Later when you need to retrieve the value, use the get(key) method.
- * The Header offers several opinionated static constructors for
- * creating a new Header for a Message. The Header is immutable.
+ * <p>The Header contains metadata for a Message, and is required when constructing a Message.</p>
+ * <p>Use the Header to store your own additional metadata for a message if needed by way of the <code>put(key, value)</code> method.
+ * Later when you need to retrieve the value, use the <code>get(key)</code> method.</p>
+ * <p>The Header offers several opinionated static constructors for creating a new Header for a Message.
+ * The Header is immutable.</p>
  *
- * Opinions and concepts:
- * - HeadOfChain - the first (and possibly only) message in a chain of messages
- * - ResultingFrom - a message that is a direct result of another message - Used to indicate an Event is the result of a Command
- * - SideEffectOf - a message that is a side effect of another message - Used to indicate a Command is a Side Effect of an Event
+ * <p>Opinions and concepts:</p>
+ * <ul>
+ *   <li><strong>HeadOfChain</strong>: the first (and possibly only) message in a chain of messages.</li>
+ *   <li><strong>ResultingFrom</strong>: a message that is a direct result of another message. Used to indicate an Event is the result of a Command.</li>
+ *   <li><strong>SideEffectOf</strong>: a message that is a side effect of another message. Used to indicate a Command is a Side Effect of an Event.</li>
+ * </ul>
  *
+ * <p>Messages that are <strong>ResultingFrom</strong> another message belong to the same StreamId and will have the same CorrelationId.
+ * Messages that are <strong>SideEffectOf</strong> another message belong to the same CorrelationId but may belong to a different StreamId.
  * These static constructors ensure that developers do not have to focus on tying correlation IDs from one message to another.
- * The Header will automatically populate the correlation ID when using the static constructors.
+ * The Header will automatically populate the correlation ID when using the static constructors.</p>
  *
- * example:
+ * <p>Example:</p>
+ * <pre>
+ * {@code
  * Header header = Header.headOfChain(myAggregate, MyEvent.class);
  * header.put("my-custom-header", "some-value");
  * header.get("my-custom-header").ifPresent(System.out::println);
  * // prints "some-value"
  * header.get("non-existent-key");
  * // returns Optional.empty()
+ * }
+ * </pre>
  */
 public class Header {
     @JsonIgnore

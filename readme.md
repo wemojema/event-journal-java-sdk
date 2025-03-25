@@ -2,7 +2,7 @@
 
 ## Overview
 
-The EventJournal SDK provides a set of classes and methods to handle event-driven messaging within your application. It includes utilities for creating message headers, generating stream IDs, and recording and playing back events.
+The EventJournal SDK provides a set of classes and methods to handle event-sourcing messaging within your application. It includes utilities for creating message headers, generating stream IDs, and recording and playing back events.
 
 ## Installation
 
@@ -29,14 +29,31 @@ You are now ready to record your first event. Here is an example of how to recor
 
 ## VersionedAggregates
 A Versioned aggregate is an Abstract class that all Event Sourced Aggregates must extend.
-Each time an event is applied to a Versioned Aggregate, the version of the aggregate is incremented. This is used to ensure that events are applied in the correct order and that no events are missed. It is also used when generating a Header of a Message to indicate the version of the aggregate at the point in time in which the message was emitted.
+Each time an event is applied to a Versioned Aggregate, the version of the aggregate is incremented. Any new messages that are emitted from this aggregate use the aggregate's version as their sequence number.
 The state of a Versioned Aggregate is deterministic so long as in the apply methods of the aggregate nothing non-deterministic is happening.
 
-Aggregates should implement apply() methods
+**Versioned Aggregates** should implement apply() methods for any events that can alter its state.
 
+Example:
 ```java
+public class Room extends VersionedAggregate {
 
----
+    public String roomNumber;
+    public List<Bed> beds;
+    public Guest currentGuest;
+
+    public Outcome apply(RoomRegistered event) {
+        this.roomNumber = event.getRoomNumber();
+        this.beds = event.getBeds();
+        return Outcome.intert();
+    }
+    
+    public Outcome apply(GuestCheckedIn event) {
+        this.currentGuest = event.getGuest();
+        return Outcome.intert();
+    }
+}
+```
 
 ## Messages
 `Messages` are the communication mechanism of your application. There are two types of Messages that can be recorded in Event Journal: `Events` and `Commands`. Events are deterministically & sequentially ordered objects that are serialized and stored in a Stream index (provided by an application). While Commands are deterministically & sequentially ordered objects that are serialized and stored in that same Stream Index. Commands are used to trigger side effects in your application, while Events are used to record changes in your application's state. Recording Commands is optional.

@@ -4,8 +4,12 @@ import com.eventjournal.api.Message;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+/**
+ * Represents the outcome of handling a command or event.
+ */
 public class Outcome {
 
     List<Message> messages = new ArrayList<>();
@@ -27,18 +31,33 @@ public class Outcome {
         return new Outcome();
     }
 
-    public static Outcome of(Message... event) {
+    /**
+     * A convenient factory method to create an Outcome object with a single message or
+     * several Messages that are not already collected.
+     * @param message the message to be included in the Outcome
+     * @return an Outcome object containing the specified message
+     */
+    public static Outcome of(Message... message) {
         Outcome outcome = new Outcome();
-        outcome.messages.addAll(Arrays.asList(event));
+        outcome.messages.addAll(Arrays.asList(message));
         return outcome;
     }
 
-    public static Outcome of(List<Message> messages) {
+    /**
+     * A convenient factory method to create an Outcome with a collection of messages.
+     * @param messages the messages to be included in the Outcome
+     * @return an Outcome object containing the specified messages
+     */
+    public static Outcome of(Collection<Message> messages) {
         Outcome outcome = new Outcome();
         outcome.messages.addAll(messages);
         return outcome;
     }
 
+    /**
+     * Adds a message to the Outcome.
+     * @param message the message to be added to the Outcome
+     */
     public void add(Message message) {
         this.messages.add(message);
     }

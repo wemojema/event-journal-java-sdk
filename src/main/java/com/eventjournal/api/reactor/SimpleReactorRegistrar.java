@@ -8,10 +8,19 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * A simple implementation of a ReactorRegistrar.
+ */
 public class SimpleReactorRegistrar implements ReactorRegistrar {
     Logger log = LoggerFactory.getLogger(SimpleReactorRegistrar.class);
     Map<String, List<Reactor<? extends Message>>> reactors = new HashMap<>();
 
+    /**
+     * Subscribes a Reactor to a specific message type.
+     * @param messageClass the message type
+     * @param reactor the reactor to subscribe
+     * @param <T> the type of message
+     */
     @Override
     public <T extends Message> void subscribeReactor(Class<T> messageClass, Reactor<T> reactor) {
         reactors.merge(messageClass.getSimpleName(), List.of(reactor),
@@ -22,7 +31,12 @@ public class SimpleReactorRegistrar implements ReactorRegistrar {
                 });
     }
 
-
+    /**
+     * Returns a list of Reactors that are subscribed to a specific message type.
+     * @param messageClass the message type
+     * @return a list of Reactors (empty if no Reactors are subscribed)
+     * @param <T> the type of message
+     */
     @Override
     public <T extends Message> List<Reactor<T>> reactorsFor(String messageClass) {
         return Optional.ofNullable(reactors.get(messageClass))
