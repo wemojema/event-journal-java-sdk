@@ -23,7 +23,9 @@ public class SimpleReactorRegistrar implements ReactorRegistrar {
      */
     @Override
     public <T extends Message> void subscribeReactor(Class<T> messageClass, Reactor<T> reactor) {
-        reactors.merge(messageClass.getSimpleName(), Arrays.asList(reactor),
+        List<Reactor<? extends Message>> newReactorList = new ArrayList<>();
+        newReactorList.add(reactor);
+        reactors.merge(messageClass.getSimpleName(), newReactorList,
                 (oldValue, newValue) -> {
                     log.warn("A Reactor is already subscribed for {}. Multiple Reactors for the same Message Type is not recommended.", messageClass.getSimpleName());
                     oldValue.addAll(newValue);
