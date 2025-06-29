@@ -28,9 +28,9 @@ You are now ready to record your first event. Here is an example of how to recor
 ---
 
 ## VersionedAggregates
-A Versioned aggregate is an Abstract class that all Event Sourced Aggregates must extend.
+A Versioned aggregate is an Abstract class that all Event Sourced Aggregates can extend.
 Each time an event is applied to a Versioned Aggregate, the version of the aggregate is incremented. Any new messages that are emitted from this aggregate use the aggregate's version as their sequence number.
-The state of a Versioned Aggregate is deterministic so long as in the apply methods of the aggregate nothing non-deterministic is happening.
+The state of a Versioned Aggregate is deterministic so long as in the apply methods of the aggregate nothing non-deterministic is happening, ie: randomness or anything related to dates / times when the current date/time is used instead of some data supplied by the event.
 
 **Versioned Aggregates** should implement apply() methods for any events that can alter its state.
 
@@ -64,10 +64,10 @@ Any part of an application can produce a command, but typically Events are produ
 - The Command is sent to the application's Domain layer, where it is validated by an Aggregate.
 - If the Command is valid, the Aggregate emits an Event.
 
-It's not always a User that triggers a command, it could be a SideEffect of an Event, a scheduled task, or any other part of the application.
+It's not always a User that triggers a command, it could be a side effect of an Event (aka a TODO), a scheduled task, or any other part of the application.
 
 ### Commands
-Commands are immutable representations of an intent to change the state of your application. They are the building blocks of Event Journal. Commands are (optionally) serialized and stored in the Event Journal database. They can be replayed at any time to recreate the state of your application at any point in time.
+Commands are immutable representations of an intent to change the state of the application.Commands are (optionally) serialized and stored in the Event Journal database alongside the events that are recorded as a result of the command. Commands are never replayed during playback.
 
 ```java
 Cart cart = ej.playback("cartId", Cart.class);
