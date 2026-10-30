@@ -11,7 +11,7 @@ import java.util.List;
  * mechanism this is the class to override. Simply implement the methods
  * and provide the implementation to the package private EventJournal constructor.
  */
-interface EventStoreClient {
+public interface EventStoreClient {
 
     void save(Envelope envelope);
 

@@ -1,0 +1,58 @@
+name: Release
+
+# A pushed tag v<version> builds the SDK on a GitHub-hosted runner (free for a public repository), runs its tests,
+# and attaches the jar, the sources jar and the pom to a GitHub release of that tag. The tag must match `version`
+# in build.gradle. Actions > Release > Run workflow rebuilds the release of an existing tag by hand.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The existing tag to release, for example v0.13.9'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: The tag matches the version
+        run: |
+          version=$(sed -n "s/^version '\(.*\)'/\1/p" build.gradle)
+          test "v$version" = "$TAG" || { echo "Tag $TAG does not match version $version in build.gradle"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Build and test
+        run: ./gradlew build sourcesJar generatePomFileForMavenJavaPublication --stacktrace
+
+      - name: Name the files as the artifact `client`
+        run: |
+          mkdir release
+          cp "build/libs/event-journal-$VERSION.jar" "release/client-$VERSION.jar"
+          cp "build/libs/event-journal-$VERSION-sources.jar" "release/client-$VERSION-sources.jar"
+          cp build/publications/mavenJava/pom-default.xml "release/client-$VERSION.pom"
+
+      - name: Publish the release
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+          else
+            gh release create "$TAG" release/* --title "$TAG" --notes "event-journal client $VERSION: com.eventjournal:client:$VERSION"
+          fi

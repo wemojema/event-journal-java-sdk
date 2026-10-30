@@ -48,7 +48,7 @@ public class EventJournal {
     private final EventStoreClient client;
     private Message.Producer producer = Message.Producer.ANONYMOUS;
 
-    EventJournal(EventStoreClient client) {
+    public EventJournal(EventStoreClient client) {
         this.client = client;
     }
 
